@@ -1,0 +1,1 @@
+Credits to samjesus8 for creating the template that this repository was started from. Refer to the README(Template).md file for more information on the template or this github repository for more information on the original template code. https://github.com/samjesus8/CSharp-Discord-Bot-Template/blob/master/docs/repository_setup.md
