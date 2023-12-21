@@ -9,6 +9,7 @@ using DiscordBot.Config;
 using DSharpPlus.CommandsNext;
 using DiscordBot.Engines;
 
+
 namespace DiscordBot.Config
 {
     /// <summary>
@@ -86,12 +87,23 @@ namespace DiscordBot.Config
         private static readonly string _fileName = "ServerConfig.json";
 
         /// <summary>
+        /// File Directory to store server files
+        /// </summary>
+        [JsonIgnore]
+        private static readonly string _directory = "ServerFiles\\";
+
+        /// <summary>
         /// Gets the Server config for a specific discord server, or generates one if it does not exist
         /// </summary>
         /// <param name="serverID">Discord Server ID</param>
         /// <returns></returns>
         public static ServerConfig GetServerConfig(ulong serverID)
         {
+            if (!Directory.Exists(ServerDirectory(serverID)))
+            {
+                Directory.CreateDirectory(ServerDirectory(serverID));
+            }
+
             if (!File.Exists(FileName(serverID)))
             {
                 ServerConfig config = new ServerConfig()
@@ -116,13 +128,51 @@ namespace DiscordBot.Config
         }
 
         /// <summary>
+        /// Directory for Server Backup files   
+        /// </summary>
+        /// <param name="serverID">server ID</param>
+        /// <returns></returns>
+        private static string ServerBackupDirectory(ulong serverID)
+        {
+            return $"{ServerDirectory(serverID)}Backups\\";
+        }
+
+        /// <summary>
+        /// The backup directory for today
+        /// </summary>
+        /// <param name="serverID">server ID</param>
+        /// <returns></returns>
+        public static string BackupDirectoryToday(ulong serverID)
+        {
+            return $"{ServerBackupDirectory(serverID)}\\{DateTime.Now.ToString("yyyy MM dd")}\\";
+        }
+
+        /// <summary>
+        /// Directory for Server files
+        /// </summary>
+        /// <returns></returns>
+        public static string ServerDirectory(ulong serverID)
+        {
+            return $"{_directory}{serverID}\\";
+        }
+
+        /// <summary>
+        /// Directory for Server files
+        /// </summary>
+        /// <returns></returns>
+        public string ServerDirectory()
+        {
+            return ServerDirectory(ServerID);
+        }
+
+        /// <summary>
         /// Gets the filename for a config for a specifc discord server
         /// </summary>
         /// <param name="serverID">server ID</param>
         /// <returns></returns>
         public static string FileName(ulong serverID)
         {
-            return $"{serverID}{_fileName}";
+            return $"{ServerDirectory(serverID)}{_fileName}";
         }
 
         /// <summary>

@@ -12,12 +12,27 @@ namespace DiscordBot.Classes
     /// </summary>
     class Poll
     {
+        /// <summary>
+        /// Question of the poll
+        /// </summary>
         public string Question;
 
+        /// <summary>
+        /// Dictionary mapping discord reaction emojis to a specific poll option
+        /// </summary>
         public Dictionary<DiscordEmoji, PollOption> OptionMap;
 
-        public long TimeLimit;
+        /// <summary>
+        /// Timelimit for the poll
+        /// </summary>
+        private readonly long TimeLimit;
 
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="question"></param>
+        /// <param name="optionMap"></param>
+        /// <param name="timeLimit"></param>
         public Poll(string question, Dictionary<DiscordEmoji, PollOption> optionMap, long timeLimit)
         {
             Question = question;
@@ -31,7 +46,7 @@ namespace DiscordBot.Classes
             foreach (DiscordEmoji emoji in optionMap.Keys)
             {
                 optionMap.TryGetValue(emoji, out option);
-                if(option.Option == "")
+                if(option.Text == "")
                 {
                     removeList.Add(emoji);
                 }
@@ -42,8 +57,6 @@ namespace DiscordBot.Classes
             }
 
             OptionMap = optionMap;
-
-
         }
 
         /// <summary>
@@ -69,7 +82,6 @@ namespace DiscordBot.Classes
         /// <summary>
         /// Construts a discord message given a dictionary of poll results
         /// </summary>
-        /// <param name="results">dictionary of discord emojis and their counts</param>
         /// <returns></returns>
         public DiscordMessageBuilder GeneratePollResults()
         {
@@ -81,7 +93,7 @@ namespace DiscordBot.Classes
             foreach (DiscordEmoji emoji in OptionMap.Keys)
             {
                 OptionMap.TryGetValue(emoji, out option);
-                resultsString = $"{resultsString} {option.Option} : {option.Count}\n";
+                resultsString = $"{resultsString} {option.ToString()}\n";
                 total = total + option.Count;
             }
 
@@ -126,7 +138,7 @@ namespace DiscordBot.Classes
             foreach (DiscordEmoji emoji in OptionMap.Keys)
             {
                 OptionMap.TryGetValue(emoji, out option);
-                options = $"{options} {emoji} : {option.Option}\n";
+                options = $"{options} {emoji} : {option.Text}\n";
             }
 
             return options;
@@ -139,17 +151,30 @@ namespace DiscordBot.Classes
     /// </summary>
     class PollOption
     {
-        //public DiscordEmoji Emoji { get; private set; }
 
-        public string Option { get; private set; }
+        /// <summary>
+        /// Poll Option text
+        /// </summary>
+        public string Text { get; private set; }
 
+        /// <summary>
+        /// Count of votes for this poll option
+        /// </summary>
         public int Count { get; private set; }
 
         public PollOption(string option)
         {
-            //this.Emoji = emoji;
-            this.Option = option;
+            this.Text = option;
             this.Count = 0;
+        }
+
+        /// <summary>
+        /// String representation of this object
+        /// </summary>
+        /// <returns></returns>
+        public string ToString()
+        {
+            return $"{Text} : {Count}";
         }
 
         /// <summary>

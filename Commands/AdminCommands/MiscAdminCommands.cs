@@ -15,7 +15,7 @@ namespace DiscordBot.Commands.AdminCommands
         /// <param name="ctx">command context</param>
         /// <returns></returns>
         [Command("backupemojis")]
-        [RequirePermissions(DSharpPlus.Permissions.Administrator)]
+        [RequireUserPermissions(DSharpPlus.Permissions.Administrator)]
         public async Task BackupEmojis(CommandContext ctx)
         {
             DiscordServerEngine engine = new DiscordServerEngine(ctx.Guild);

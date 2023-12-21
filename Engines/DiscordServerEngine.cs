@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using DSharpPlus.Entities;
+using DiscordBot.Config;
 
 namespace DiscordBot.Engines
 {
@@ -38,7 +39,7 @@ namespace DiscordBot.Engines
                 {
 
                 }
-                await WebEngine.DownloadImage(emoji.Url, _backupDirectory("Emoji Backup"), EmojiFileName(emoji));
+                await WebEngine.DownloadImage(emoji.Url, BackupDirectory("Emojis"), EmojiFileName(emoji));
             }
         }
 
@@ -61,18 +62,13 @@ namespace DiscordBot.Engines
         }
 
         /// <summary>
-        /// Directory to backup files
+        /// Backup directory
         /// </summary>
-        /// <param name="name">optional subdirectory</param>
+        /// <param name="backupType">subdirectory folder name in the backup folder</param>
         /// <returns></returns>
-        private string _backupDirectory(string name = "")
+        public string BackupDirectory(string backupType)
         {
-            string directory = $@"H:\Users\avery\Desktop\Discord Bot\discord-bot-2\{ID}\{DateTime.Now.ToString("yyyy MM dd")}";
-            if (!string.IsNullOrEmpty(name))
-            {
-                directory = $@"{directory}\{name}";
-            }
-            return directory;
+            return $"{ServerConfig.BackupDirectoryToday(ID)}{backupType}";
         }
     }
 }

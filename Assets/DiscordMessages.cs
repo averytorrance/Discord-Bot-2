@@ -21,6 +21,15 @@ namespace DiscordBot.Assets
         }
 
         /// <summary>
+        /// Generic error Message object
+        /// </summary>
+        /// <returns></returns>
+        public static DiscordMessageBuilder GenerateErrorMessage(Exception ex)
+        {
+            return GenerateErrorMessage($"Error: {ex.Message}", ex.StackTrace);
+        }
+
+        /// <summary>
         /// Error Message object
         /// </summary>
         /// <param name="error">error message</param>

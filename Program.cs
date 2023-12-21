@@ -132,7 +132,7 @@ namespace DiscordBot
         /// <returns></returns>
         private static async Task CommandErrorHandler(CommandsNextExtension sender, CommandErrorEventArgs e)
         {
-            await e.Context.Channel.SendMessageAsync(DiscordMessageAssets.GenerateErrorMessage($"An error has occured: {e.Exception.Message}", e.Exception.StackTrace));
+            await e.Context.Channel.SendMessageAsync(DiscordMessageAssets.GenerateErrorMessage(e.Exception));
         }
 
 

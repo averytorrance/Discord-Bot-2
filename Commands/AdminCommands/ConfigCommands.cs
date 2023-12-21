@@ -19,7 +19,7 @@ namespace DiscordBot.Commands.AdminCommands
         /// <param name="ctx">command context</param>
         /// <returns></returns>
         [Command]
-        [RequirePermissions(DSharpPlus.Permissions.Administrator)]
+        [RequireUserPermissions(DSharpPlus.Permissions.Administrator)]
         public async Task SetBotChannel(CommandContext ctx)
         {
             ulong channelID = ctx.Channel.Id;
@@ -34,7 +34,7 @@ namespace DiscordBot.Commands.AdminCommands
         /// <param name="ctx">command context</param>
         /// <returns></returns>
         [Command]
-        [RequirePermissions(DSharpPlus.Permissions.Administrator)]
+        [RequireUserPermissions(DSharpPlus.Permissions.Administrator)]
         public async Task SetWatchRatingsChannel(CommandContext ctx)
         {
             ulong channelID = ctx.Channel.Id;
@@ -49,7 +49,7 @@ namespace DiscordBot.Commands.AdminCommands
         /// <param name="ctx">command context</param>
         /// <returns></returns>
         [Command]
-        [RequirePermissions(DSharpPlus.Permissions.Administrator)]
+        [RequireUserPermissions(DSharpPlus.Permissions.Administrator)]
         public async Task SetPlanToWatchChannel(CommandContext ctx)
         {
             ulong channelID = ctx.Channel.Id;
@@ -64,7 +64,7 @@ namespace DiscordBot.Commands.AdminCommands
         /// <param name="ctx">command context</param>
         /// <returns></returns>
         [Command]
-        [RequirePermissions(DSharpPlus.Permissions.Administrator)]
+        [RequireUserPermissions(DSharpPlus.Permissions.Administrator)]
         public async Task SetReminderChannel(CommandContext ctx)
         {
             ulong channelID = ctx.Channel.Id;
