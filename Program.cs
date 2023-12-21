@@ -11,6 +11,9 @@ using DiscordBot.Engines;
 using DSharpPlus.Entities;
 using DiscordBot.UserProfile;
 using DiscordBot.Commands.AdminCommands;
+using DiscordBot.Commands.SlashCommands;
+using DSharpPlus.SlashCommands;
+using DiscordBot.Assets;
 
 namespace DiscordBot
 {
@@ -48,7 +51,7 @@ namespace DiscordBot
             Client.GuildMemberAdded += UserJoinedHandler;
 
             //6. Set up the Commands Configuration
-            var commandsConfig = new CommandsNextConfiguration()
+            CommandsNextConfiguration commandsConfig = new CommandsNextConfiguration()
             {
                 StringPrefixes = new string[] { configJsonFile.Prefix },
                 EnableMentionPrefix = true,
@@ -57,6 +60,7 @@ namespace DiscordBot
             };
 
             Commands = Client.UseCommandsNext(commandsConfig);
+            SlashCommandsExtension slashCommands = Client.UseSlashCommands();
 
             //7. Register your commands
             Commands.RegisterCommands<BasicCommands>();
@@ -64,6 +68,12 @@ namespace DiscordBot
             Commands.RegisterCommands<ProfileCommands>();
             Commands.RegisterCommands<AdminCommands>();
             Commands.RegisterCommands<MiscAdminCommands>();
+
+            slashCommands.RegisterCommands<PollCommands>();
+
+            //7.1 Command Error Handler
+            Commands.CommandErrored += CommandErrorHandler;
+
 
             //8. Connect to get the Bot online
             await Client.ConnectAsync();
@@ -112,6 +122,17 @@ namespace DiscordBot
             {
                 userEngine.UpdateUserAvatar(newUser);
             }
+        }
+
+        /// <summary>
+        /// Hanlder for when an error occurs during a command call
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name=""></param>
+        /// <returns></returns>
+        private static async Task CommandErrorHandler(CommandsNextExtension sender, CommandErrorEventArgs e)
+        {
+            await e.Context.Channel.SendMessageAsync(DiscordMessageAssets.GenerateErrorMessage($"An error has occured: {e.Exception.Message}", e.Exception.StackTrace));
         }
 
 

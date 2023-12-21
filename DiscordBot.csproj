@@ -153,12 +153,14 @@
   <ItemGroup>
     <Compile Include="Assets\DiscordMessages.cs" />
     <Compile Include="Assets\Strings.cs" />
+    <Compile Include="Classes\Poll.cs" />
     <Compile Include="Classes\DiscordUser.cs" />
     <Compile Include="Commands\AdminCommands\ConfigCommands.cs" />
     <Compile Include="Commands\AdminCommands\MiscAdminCommands.cs" />
     <Compile Include="Commands\BasicCommands.cs" />
-    <Compile Include="Commands\BasicGameCommands.cs" />
+    <Compile Include="Commands\GameCommands\BasicGameCommands.cs" />
     <Compile Include="Commands\ProfileCommands.cs" />
+    <Compile Include="Commands\SlashCommands\PollCommands.cs" />
     <Compile Include="Config\Config.cs" />
     <Compile Include="Engines\BlackListEngine.cs" />
     <Compile Include="Engines\DiscordServerEngine.cs" />
@@ -173,17 +175,14 @@
     <Compile Include="Engines\WatchRatingsEngine.cs" />
     <Compile Include="Engines\WebEngine.cs" />
     <Compile Include="Models\SQLModels\CommandLog.cs" />
-    <Compile Include="Models\SQLModels\CountryDim.cs" />
     <Compile Include="Models\SQLModels\Errors.cs" />
     <Compile Include="Models\SQLModels\EventLog.cs" />
-    <Compile Include="Models\SQLModels\GenreDim.cs" />
-    <Compile Include="Models\SQLModels\LanguageDim.cs" />
     <Compile Include="Models\SQLModels\RatingsFact.cs" />
-    <Compile Include="Models\SQLModels\ReminderFact.cs" />
-    <Compile Include="Models\SQLModels\SubscriptionDim.cs" />
-    <Compile Include="Models\SQLModels\UserDim.cs" />
+    <Compile Include="Models\SQLModels\Reminder.cs" />
+    <Compile Include="Models\SQLModels\Subscription.cs" />
+    <Compile Include="Models\SQLModels\Users.cs" />
     <Compile Include="Models\SQLModels\WatchDim.cs" />
-    <Compile Include="Models\SQLModels\WatchSuggestionDim.cs" />
+    <Compile Include="Models\SQLModels\WatchSuggestion.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

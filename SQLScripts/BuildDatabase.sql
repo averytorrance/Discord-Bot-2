@@ -1,5 +1,5 @@
 /*   USER PROFILES   */
-CREATE TABLE UserDim(
+CREATE TABLE Users(
     UserID nvarchar(50) NOT NULL PRIMARY KEY,
 	Username nvarchar(50) NOT NULL,
 	isDuplicateUser bit NULL,
@@ -21,7 +21,7 @@ CREATE TABLE Errors(
 CREATE TABLE CommandLog(
 	Instant datetime2(7) NOT NULL,
 	Module int NOT NULL FOREIGN KEY REFERENCES ModuleDim(ModuleID),
-	UserID nvarchar(50) NOT NULL FOREIGN KEY REFERENCES UserDim(UserID),
+	UserID nvarchar(50) NOT NULL FOREIGN KEY REFERENCES Users(UserID),
 	ErrorID int NULL FOREIGN KEY REFERENCES Errors(ID),
 	ServerID nvarchar(50) NULL,
 	Command nvarchar(50) NULL,
@@ -30,7 +30,7 @@ CREATE TABLE CommandLog(
 CREATE TABLE EventLog(
 	Instant datetime2(7) NOT NULL,
 	Module int NOT NULL FOREIGN KEY REFERENCES ModuleDim(ModuleID),
-	UserID nvarchar(50) NOT NULL FOREIGN KEY REFERENCES UserDim(UserID),
+	UserID nvarchar(50) NOT NULL FOREIGN KEY REFERENCES Users(UserID),
 	ErrorID int NULL FOREIGN KEY REFERENCES Errors(ID),
 	ServerID nvarchar(50) NULL,
 	Command nvarchar(50) NULL,
@@ -38,21 +38,6 @@ CREATE TABLE EventLog(
 );
 
 /*   WATCHRATINGS   */
-CREATE TABLE GenreDim (
-	ID int NOT NULL PRIMARY KEY,
-	Genre nvarchar(50) NOT NULL
-);
-
-CREATE TABLE CountryDim (
-	ID int NOT NULL Primary KEY,
-	Country nvarchar(50) NOT NULL
-);
-
-CREATE TABLE LanguageDim (
-	ID int NOT NULL PRIMARY KEY,
-	Language nvarchar(50) NOT NULL
-);
-
 CREATE TABLE WatchDim (
     ID nvarchar(50) NOT NULL PRIMARY KEY,
     Title nvarchar(254) NOT NULL,
@@ -67,21 +52,21 @@ CREATE TABLE WatchDim (
 
 CREATE TABLE RatingsFact (
 	WatchID nvarchar(50) NOT NULL FOREIGN KEY REFERENCES WatchDim(ID),
-	UserID nvarchar(50) NOT NULL FOREIGN KEY REFERENCES UserDim(UserID),
+	UserID nvarchar(50) NOT NULL FOREIGN KEY REFERENCES Users(UserID),
 	Score float NOT NULL
 );
 
-CREATE TABLE WatchSuggestionDim (
+CREATE TABLE WatchSuggestion(
     ID nvarchar(50) NOT NULL PRIMARY KEY,
     Title nvarchar(50) NOT NULL,
-	UserID nvarchar(50) NOT NULL FOREIGN KEY REFERENCES UserDim(UserID)
+	UserID nvarchar(50) NOT NULL FOREIGN KEY REFERENCES Users(UserID)
 );
 
 /*   REMINDERS   */
-CREATE TABLE ReminderFact(
+CREATE TABLE Reminder(
 	ReminderID int NOT NULL PRIMARY KEY,
 	Message nvarchar(max) NOT NULL,
-	OwnerId nvarchar(50) NOT NULL FOREIGN KEY REFERENCES UserDim(UserID),
+	OwnerId nvarchar(50) NOT NULL FOREIGN KEY REFERENCES Users(UserID),
 	Sent bit NOT NULL,
 	SendInstant datetime2(7) NOT NULL,
 	Recurring bit NOT NULL, 
@@ -90,10 +75,10 @@ CREATE TABLE ReminderFact(
 	SoftDeleted bit NOT NULL
 );
 
-CREATE TABLE SubscriptionsDim(
+CREATE TABLE Subscription(
 	SubscriptionID nvarchar(50) NOT NULL PRIMARY KEY,
-	UserID nvarchar(50) NOT NULL FOREIGN KEY REFERENCES UserDim(UserID),
-	ReminderID int NOT NULL FOREIGN KEY REFERENCES	ReminderFact(ReminderID),
+	UserID nvarchar(50) NOT NULL FOREIGN KEY REFERENCES Users(UserID),
+	ReminderID int NOT NULL FOREIGN KEY REFERENCES	Reminder(ReminderID),
 );
 
 /*   SECRET SANTA  */
@@ -110,11 +95,11 @@ CREATE TABLE PresentFact(
 	TrackingNumber nvarchar(50) NULL
 );
 
-CREATE TABLE SecretSantaUserDim(
+CREATE TABLE SecretSantaUsers(
 	SessionYear int NOT NULL FOREIGN KEY REFERENCES SecretSantaSessionFact(SessionYear),
-	UserID nvarchar(50) NOT NULL FOREIGN KEY REFERENCES UserDim(UserID),
+	UserID nvarchar(50) NOT NULL FOREIGN KEY REFERENCES Users(UserID),
 	isParticipant bit NOT NULL,
-	SantaID nvarchar(50) NULL FOREIGN KEY REFERENCES UserDim(UserID),
+	SantaID nvarchar(50) NULL FOREIGN KEY REFERENCES Users(UserID),
 	PresentID int NOT NULL FOREIGN KEY REFERENCES PRESENTSFACT(ID)
 );
 

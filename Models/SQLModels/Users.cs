@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace DiscordBot.Models
 {
-	public class UserDim
+	public class User
 	{
 		public string UserID { get; set; }
 		public string Username { get; set; }
@@ -16,7 +16,7 @@ namespace DiscordBot.Models
 		public string Address { get; set; }
 		public string Timezone { get; set; }
 
-		public UserDim(string UserID_, string Username_, bool isDuplicateUser_, string OriginalUserID_, string Name_, string Address_, string Timezone_)
+		public User(string UserID_, string Username_, bool isDuplicateUser_, string OriginalUserID_, string Name_, string Address_, string Timezone_)
 		{
 			this.UserID = UserID_;
 			this.Username = Username_;

@@ -3,6 +3,8 @@ using DSharpPlus.CommandsNext.Attributes;
 using System.Threading.Tasks;
 using DiscordBot.UserProfile;
 using DiscordBot.Assets;
+using DSharpPlus.Entities;
+using System;
 
 namespace DiscordBot.Commands
 {
@@ -16,22 +18,13 @@ namespace DiscordBot.Commands
         [Command("profile")]
         public async Task Profile(CommandContext ctx)
         {
-            try
-            {
-                LocalUserEngine userEngine = new LocalUserEngine();
-                ulong userID = ctx.User.Id;
-                ulong serverID = ctx.Guild.Id;
+            LocalUserEngine userEngine = new LocalUserEngine();
 
-                LocalUser user = new LocalUser(ctx.Member);
+            LocalUser user = new LocalUser(ctx.Member);
 
-                user = userEngine.GetCreateUser(user);
+            user = userEngine.GetCreateUser(user);
 
-                await ctx.Channel.SendMessageAsync(user.GenerateProfileMessage());
-            }
-            catch
-            {
-                await ctx.Channel.SendMessageAsync(DiscordMessageAssets.GenerateErrorMessage());
-            }
+            await ctx.Channel.SendMessageAsync(user.GenerateProfileMessage());
         }
 
 

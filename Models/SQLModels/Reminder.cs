@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace DiscordBot.Models
 {
-	public class ReminderFact
+	public class Reminder
 	{
 		public int ReminderID { get; set; }
 		public string Message { get; set; }
@@ -18,7 +18,7 @@ namespace DiscordBot.Models
 		public string DayOfWeek { get; set; }
 		public bool SoftDeleted { get; set; }
 
-		public ReminderFact(int ReminderID_, string Message_, string OwnerId_, bool Sent_, DateTime SendInstant_, bool Recurring_, string Frequency_, string DayOfWeek_, bool SoftDeleted_)
+		public Reminder(int ReminderID_, string Message_, string OwnerId_, bool Sent_, DateTime SendInstant_, bool Recurring_, string Frequency_, string DayOfWeek_, bool SoftDeleted_)
 		{
 			this.ReminderID = ReminderID_;
 			this.Message = Message_;
