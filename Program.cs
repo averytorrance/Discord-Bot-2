@@ -14,6 +14,7 @@ using DiscordBot.Commands.AdminCommands;
 using DiscordBot.Commands.SlashCommands;
 using DSharpPlus.SlashCommands;
 using DiscordBot.Assets;
+using DSharpPlus.CommandsNext.Exceptions;
 
 namespace DiscordBot
 {
@@ -21,11 +22,16 @@ namespace DiscordBot
     {
         public static DiscordClient Client { get; private set; }
         public static CommandsNextExtension Commands { get; private set; }
+
+        public static BlackListEngine BlackList { get; private set; }
+
         static async Task Main(string[] args)
         {
             //1. Get the details of your config.json file by deserialising it
             BotConfig configJsonFile = new BotConfig();
             await configJsonFile.GenerateConfig();
+            BlackList = new BlackListEngine();
+
 
             //2. Setting up the Bot Configuration
             var discordConfig = new DiscordConfiguration()
@@ -65,11 +71,12 @@ namespace DiscordBot
             //7. Register your commands
             Commands.RegisterCommands<BasicCommands>();
             Commands.RegisterCommands<BasicGameCommands>();
-            Commands.RegisterCommands<ProfileCommands>();
             Commands.RegisterCommands<AdminCommands>();
             Commands.RegisterCommands<MiscAdminCommands>();
+            Commands.RegisterCommands<OwnerCommands>();
 
             slashCommands.RegisterCommands<PollCommands>();
+            slashCommands.RegisterCommands<ProfileCommands>(427296058310393856);
 
             //7.1 Command Error Handler
             Commands.CommandErrored += CommandErrorHandler;
@@ -93,13 +100,27 @@ namespace DiscordBot
         /// <returns></returns>
         private static async Task MessageSentHandler(DiscordClient sender, MessageCreateEventArgs e)
         {
-            DiscordMember test;
-            e.Guild.Members.TryGetValue(e.Author.Id, out test);
+            DiscordMember duser;
+            e.Guild.Members.TryGetValue(e.Author.Id, out duser);
+
+            LocalUserEngine userEngine = new LocalUserEngine();
+            
+            LocalUser user = new LocalUser(duser);
+            if (!userEngine.UserExists(user))
+            {
+                userEngine.CreateUser(user);
+            }
+
             if (BlackListEngine.IsBlackListed(e.Message.Content))
             {
                 DiscordEmoji dollar = DiscordEmoji.FromUnicode("💸");
                 await e.Message.CreateReactionAsync(dollar);
+
+                user = userEngine.GetUser(user.UserID, user.ServerID);
+                user.AddToDebt();
+                userEngine.UpdateUser(user);
             }
+
         }
 
         /// <summary>
@@ -132,7 +153,15 @@ namespace DiscordBot
         /// <returns></returns>
         private static async Task CommandErrorHandler(CommandsNextExtension sender, CommandErrorEventArgs e)
         {
+            if(e.Exception is CommandNotFoundException)
+            {
+                return;
+            }
+
             await e.Context.Channel.SendMessageAsync(DiscordMessageAssets.GenerateErrorMessage(e.Exception));
+
+            Console.WriteLine(e.Exception);
+
         }
 
 

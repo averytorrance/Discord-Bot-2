@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -7,12 +8,73 @@ using System.Text.RegularExpressions;
 
 namespace DiscordBot.Engines
 {
-    public static class BlackListEngine
+    public class BlackListEngine
     {
-        private static readonly List<string> _blackListedTerms = new List<string>()
+        /// <summary>
+        /// List of blacklisted terms
+        /// </summary>
+        private static List<string> _blackListedTerms = new List<string>()
         {
             "test"
         };
+
+        /// <summary>
+        /// Blacklist file name
+        /// </summary>
+        private const string _blackListFile = "BlackList.JSON";
+
+        /// <summary>
+        /// Constructor and initializes the blacklist.
+        /// </summary>
+        public BlackListEngine()
+        {
+            RefreshList();
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="term"></param>
+        public void AddBlackListTerm(string term)
+        {
+            _blackListedTerms.Add(term);
+            _saveList();
+            RefreshList();
+        }
+
+        /// <summary>
+        /// Removes a blacklisted term
+        /// </summary>
+        /// <param name="term">term to remove from the blacklist</param>
+        public bool RemoveBlackListTerm(string term)
+        {
+            bool result = _blackListedTerms.Remove(term);
+            _saveList();
+            RefreshList();
+            return result;
+        }
+
+        /// <summary>
+        /// Saves the blacklist to a JSON file
+        /// </summary>
+        private void _saveList()
+        {
+            JSONEngine engine = new JSONEngine();
+            engine.OverwriteObjectFile<List<string>>(_blackListedTerms,_blackListFile);
+        }
+
+        /// <summary>
+        /// Reloads the blacklist from the JSON file
+        /// </summary>
+        public void RefreshList()
+        {
+            JSONEngine engine = new JSONEngine();
+            if (!File.Exists(_blackListFile))
+            {
+                engine.OverwriteObjectFile(new List<string>(), _blackListFile);
+            }
+            _blackListedTerms = engine.GenerateObject<List<string>>(_blackListFile);
+        }
 
         /// <summary>
         /// Checks if a string has Blacklisted content

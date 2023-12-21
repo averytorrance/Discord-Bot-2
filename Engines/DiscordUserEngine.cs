@@ -7,6 +7,7 @@ using DSharpPlus.Entities;
 using DSharpPlus;
 using DiscordBot.Engines;
 using System.Linq;
+using System;
 
 namespace DiscordBot.UserProfile
 {
@@ -100,28 +101,33 @@ namespace DiscordBot.UserProfile
 
         /// <summary>
         /// Updates a user profile in the JSON. Creates the user if it does not exist. 
+        /// Assumes that the user exists.
         /// </summary>
         /// <param name="user">discord user object</param>
         /// <returns>true if the user was updated, false otherwise</returns>
         public bool UpdateUser(LocalUser user)
         {
             JSONEngine jsonEngine = new JSONEngine();
-            if (!UserExists(user))
-            {
-                return CreateUser(user);
-            }
 
             List<LocalUser> allUsers = jsonEngine.GenerateListObjects<LocalUser>(FilePath);
 
+            bool userFound = false;
             // We already check if the user exists, so we can assume that the user will be removed.
             foreach (LocalUser currentUser in allUsers)
             {
                 if (currentUser.Equals(user))
                 {
+                    userFound = true;
                     allUsers.Remove(currentUser);
                     break;
                 }
             }
+
+            if(userFound == false)
+            {
+                throw new Exception("Unable to find user when trying to update user.");
+            }
+
 
             allUsers.Add(user);
             return jsonEngine.OverwriteObjectFile(allUsers, FilePath);

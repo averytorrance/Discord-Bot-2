@@ -159,7 +159,8 @@
     <Compile Include="Commands\AdminCommands\MiscAdminCommands.cs" />
     <Compile Include="Commands\BasicCommands.cs" />
     <Compile Include="Commands\GameCommands\BasicGameCommands.cs" />
-    <Compile Include="Commands\ProfileCommands.cs" />
+    <Compile Include="Commands\OwnerCommands\OwnerCommands.cs" />
+    <Compile Include="Commands\SlashCommands\ProfileCommands.cs" />
     <Compile Include="Commands\SlashCommands\PollCommands.cs" />
     <Compile Include="Config\Config.cs" />
     <Compile Include="Engines\BlackListEngine.cs" />

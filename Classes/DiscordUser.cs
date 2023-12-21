@@ -125,6 +125,11 @@ namespace DiscordBot.UserProfile
         public double XP { get; set; } = 0;
 
         /// <summary>
+        /// The amount of money in USD that a chat member owes to the chat fund.
+        /// </summary>
+        public double Debt { get; set; } = 0;
+
+        /// <summary>
         /// Constructor
         /// </summary>
         public LocalUser() { }
@@ -135,6 +140,7 @@ namespace DiscordBot.UserProfile
         /// <param name="user">Discord Member Object</param>
         public LocalUser(DiscordMember user)
         {
+            
             this.UserID = user.Id;
             this.UserName = user.Username;
             this.ServerID = user.Guild.Id;
@@ -151,6 +157,22 @@ namespace DiscordBot.UserProfile
             return user.UserID == UserID && user.ServerID == ServerID;
         }
 
+        public string Description()
+        {
+            string description = $"Server XP: {XP}\n" +
+                $"Debt: {Debt}\n";
+            return description;
+        }
+
+        /// <summary>
+        /// Adds an amount to a chat members bill.
+        /// </summary>
+        /// <param name="amount">the amount to add to a chat member's bill</param>
+        public void AddToDebt(double amount = 1)
+        {
+            this.Debt = this.Debt + amount;
+        }
+
         /// <summary>
         /// Generates the Embed for the user profile
         /// </summary>
@@ -160,7 +182,8 @@ namespace DiscordBot.UserProfile
             DiscordEmbedBuilder profile = new DiscordEmbedBuilder()
                 .WithColor(DiscordColor.Purple)
                 .WithTitle($"{UserName}'s Profile")
-                .WithThumbnail(AvatarURL);
+                .WithThumbnail(AvatarURL)
+                .WithDescription(Description());
             return profile;
         }
 
