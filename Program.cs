@@ -15,6 +15,7 @@ using DiscordBot.Commands.SlashCommands;
 using DSharpPlus.SlashCommands;
 using DiscordBot.Assets;
 using DSharpPlus.CommandsNext.Exceptions;
+using DSharpPlus.SlashCommands.EventArgs;
 
 namespace DiscordBot
 {
@@ -75,11 +76,12 @@ namespace DiscordBot
             Commands.RegisterCommands<MiscAdminCommands>();
             Commands.RegisterCommands<OwnerCommands>();
 
-            slashCommands.RegisterCommands<PollCommands>();
+            slashCommands.RegisterCommands<PollCommands>(427296058310393856);
             slashCommands.RegisterCommands<ProfileCommands>(427296058310393856);
 
             //7.1 Command Error Handler
             Commands.CommandErrored += CommandErrorHandler;
+            slashCommands.SlashCommandErrored += SlashCommandErrorHandler;
 
 
             //8. Connect to get the Bot online
@@ -149,21 +151,34 @@ namespace DiscordBot
         /// Hanlder for when an error occurs during a command call
         /// </summary>
         /// <param name="sender"></param>
-        /// <param name=""></param>
+        /// <param name="error"></param>
         /// <returns></returns>
-        private static async Task CommandErrorHandler(CommandsNextExtension sender, CommandErrorEventArgs e)
+        private static async Task CommandErrorHandler(CommandsNextExtension sender, CommandErrorEventArgs error)
         {
-            if(e.Exception is CommandNotFoundException)
+            if(error.Exception is CommandNotFoundException)
             {
                 return;
             }
 
-            await e.Context.Channel.SendMessageAsync(DiscordMessageAssets.GenerateErrorMessage(e.Exception));
+            await error.Context.Channel.SendMessageAsync(DiscordMessageAssets.GenerateErrorMessage(error.Exception));
 
-            Console.WriteLine(e.Exception);
+            Console.WriteLine(error.Exception);
 
         }
 
+        /// <summary>
+        /// Handler for when errors occur during a slash command
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="error"></param>
+        /// <returns></returns>
+        private static async Task CommandErrorHandler(SlashCommandsExtension sender, SlashCommandErrorEventArgs error)
+        {
+
+            await error.Context.Channel.SendMessageAsync(DiscordMessageAssets.GenerateErrorMessage(error.Exception));
+
+            Console.WriteLine(error.Exception);
+        }
 
     }
 }

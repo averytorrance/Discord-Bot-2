@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using DSharpPlus.Entities;
+using DSharpPlus.Interactivity.EventHandling;
 
 namespace DiscordBot.Classes
 {
@@ -64,15 +65,15 @@ namespace DiscordBot.Classes
         /// </summary>
         /// <param name="emoji">emoji to increment</param>
         /// <returns>true if an option was incremeneted, false otherwise</returns>
-        public bool IncrementOption(DiscordEmoji emoji)
+        public bool IncrementOption(Reaction reaction)
         {
             PollOption option;
-            if (OptionMap.ContainsKey(emoji))
+            if (OptionMap.ContainsKey(reaction.Emoji))
             {
-                OptionMap.TryGetValue(emoji, out option);
-                option.Increment();
-                OptionMap.Remove(emoji);
-                OptionMap.Add(emoji, option);
+                OptionMap.TryGetValue(reaction.Emoji, out option);
+                option.Increment(reaction.Total);
+                OptionMap.Remove(reaction.Emoji);
+                OptionMap.Add(reaction.Emoji, option);
                 return true;
             }
             return false;
@@ -181,9 +182,9 @@ namespace DiscordBot.Classes
         /// Increases the count of the poll option
         /// </summary>
         /// <returns>the poll count after increasing by 1.</returns>
-        public int Increment()
+        public int Increment(int amount = 1)
         {
-            Count++;
+            Count = Count + amount;
             return Count;
         }
 
@@ -191,9 +192,9 @@ namespace DiscordBot.Classes
         /// Decreases the poll count by 1. Throws an exception if count goes below 0.
         /// </summary>
         /// <returns>the poll count after decreasing by 1.</returns>
-        public int Decrement()
+        public int Decrement(int amount = 1)
         {
-            Count--;
+            Count = Count - amount;
             if(Count < 0)
             {
                 throw new Exception("Attempted to make poll count negative.");

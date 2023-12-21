@@ -32,8 +32,7 @@ namespace DiscordBot.Commands.SlashCommands
 
             user = userEngine.GetCreateUser(user);
 
-            DiscordMessage profile = await ctx.Channel.SendMessageAsync(user.GenerateProfileMessage());
-            await interactvity.CollectReactionsAsync(profile, TimeSpan.FromMinutes(0));
+            await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder(user.GenerateProfileMessage()));
         }
 
 

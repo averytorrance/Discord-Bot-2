@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using DiscordBot.Classes;
+using DSharpPlus.Interactivity.EventHandling;
 
 namespace DiscordBot.Commands.SlashCommands
 {
@@ -32,21 +33,24 @@ namespace DiscordBot.Commands.SlashCommands
 
             Poll poll = new Poll(question, optionMap, timeLimit);
 
-            var putReactOn = await ctx.Channel.SendMessageAsync(poll.PollOptionsMessage()); //Storing the await command in a variable
+            DiscordInteractionResponseBuilder initialPollMessageContent = new DiscordInteractionResponseBuilder(poll.PollOptionsMessage());
+            await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, initialPollMessageContent);
+
+            DiscordMessage initialMessage = await ctx.GetOriginalResponseAsync(); //Storing the await command in a variable
 
             foreach (DiscordEmoji emoji in poll.OptionMap.Keys)
             {
-                await putReactOn.CreateReactionAsync(emoji);
+                await initialMessage.CreateReactionAsync(emoji);
             }
 
-            var result = await interactvity.CollectReactionsAsync(putReactOn, timer); //Collects all the emoji's and how many peopele reacted to those emojis
+            var result = await interactvity.CollectReactionsAsync(initialMessage, timer); //Collects all the emoji's and how many peopele reacted to those emojis
 
-            foreach (var emoji in result) //Foreach loop to go through all the emojis in the message and filtering out the 4 emojis we need
+            foreach (Reaction reaction in result) //Foreach loop to go through all the emojis in the message and filtering out the 4 emojis we need
             {
-                poll.IncrementOption(emoji.Emoji);
+                poll.IncrementOption(reaction);
             }
 
-            await ctx.Channel.SendMessageAsync(poll.GeneratePollResults()); //Making the embed and sending it off      
+            await initialMessage.RespondAsync(poll.GeneratePollResults()); 
         }
     }
 }
