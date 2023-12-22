@@ -13,22 +13,25 @@ namespace DiscordBot.Models
 		public ulong OwnerId { get; set; }
 		public bool Sent { get; set; } = false;
 		public DateTime SendTime { get; set; }
-		public bool Recurring { get; set; }
-		public string Frequency { get; set; }
+		public Freq Frequency { get; set; } = Freq.None;
 		public string DayOfWeek { get; set; }
 		public bool SoftDeleted { get; set; }
 
-		public Reminder(int id, string message, ulong ownerId, DateTime sendTime, bool recurring = false, string frequency = null, string dayOfWeek = null, bool softDeleted = false)
+		public Reminder(int id, string message, ulong ownerId, DateTime sendTime, Freq frequency = Freq.None, string dayOfWeek = null, bool softDeleted = false)
 		{
 			this.ID = id;
 			this.Message = message;
 			this.OwnerId = ownerId;
 			this.SendTime = sendTime;
-			this.Recurring = recurring;
 			this.Frequency = frequency;
 			this.DayOfWeek = dayOfWeek;
 			this.SoftDeleted = softDeleted;
 		}
+
+		public bool IsRecurring()
+        {
+			return Frequency != Freq.None;
+        }
 
 		public bool IsStale()
         {
@@ -88,7 +91,10 @@ namespace DiscordBot.Models
         }
 
 
-
+		public enum Freq
+        {
+			None,
+        }
 
 	}
 }

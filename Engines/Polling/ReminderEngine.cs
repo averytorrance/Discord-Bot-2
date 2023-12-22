@@ -184,10 +184,10 @@ namespace DiscordBot.Engines
             public int CreateReminder(string message, ulong ownerID, DateTime sendTime)
             {
                 Reminder reminder = new Reminder(_CurrentID, message, ownerID, sendTime);
-                _CurrentID++;
+                
                 if (reminder.IsStale())
                 {
-                    _sendReminder(reminder);
+                    throw new Exception("Attempted to create a reminder for a time in the past.");
                 }
                 else
                 {
@@ -204,6 +204,7 @@ namespace DiscordBot.Engines
             {
                 _reminders.Add(reminder);
                 _reminders = _reminders.OrderByDescending(x => x.SendTime).ThenBy(x => x.ID).ToList();
+                _CurrentID++;
                 SaveState();
             }
 

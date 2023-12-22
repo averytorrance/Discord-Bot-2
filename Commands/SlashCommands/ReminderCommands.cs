@@ -50,32 +50,47 @@ namespace DiscordBot.Commands.SlashCommands
                     }
                 }
             }
+            string error = "Unable to create reminder.";
+            string description; 
 
-            if(DateTime.TryParse($"{date} {time}", out sendTime))
+            if (DateTime.TryParse($"{date} {time}", out sendTime))
             {
-                ReminderEngine.CreateReminder(ctx.Guild.Id, message, ctx.Member.Id, sendTime);
-                response = new DiscordMessageBuilder()
-                            .AddEmbed(new DiscordEmbedBuilder()
-                            {
-                                Title = "Successfully created reminder",
-                                Description = $"{sendTime} : {message}",
-                                Color = DiscordColor.Green
-                            });
-            }
-            else
-            {
-                string error;
-                if (!DateTime.TryParse($"{date}", out sendTime))
+                if (sendTime < DateTime.Now)
                 {
-                    error = "The date format is invalid.";
+
+                    description = "Input date/time is in the past. Reminders must be configured with a future time.";
                 }
                 else
                 {
-                    error = "The time format is invalid.";
-                }
 
-                response = DiscordMessageAssets.GenerateErrorMessage(error);
+                    ReminderEngine.CreateReminder(ctx.Guild.Id, message, ctx.Member.Id, sendTime);
+                    response = new DiscordMessageBuilder()
+                                .AddEmbed(new DiscordEmbedBuilder()
+                                {
+                                    Title = "Successfully created reminder",
+                                    Description = $"{sendTime} : {message}",
+                                    Color = DiscordColor.Green
+                                });
+                }
             }
+            else
+            {
+                error = "Invalid invalid formatting";
+                if (!DateTime.TryParse($"{date}", out sendTime))
+                {
+                    description = "The date format is invalid.";
+                }
+                else
+                {
+                    description = "The time format is invalid.";
+                }
+            }
+
+            if (!string.IsNullOrEmpty(description))
+            {
+                response = DiscordMessageAssets.GenerateErrorMessage(error, description);
+            }
+
             await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder(response));
         }
 
