@@ -32,7 +32,7 @@ namespace DiscordBot.Commands.SlashCommands
             }
 
             DateTime sendTime;
-            DiscordMessageBuilder response;
+            DiscordMessageBuilder response = new DiscordMessageBuilder();
             //Handling for t+x inputs
             if (date.ToLower()[0] == 't')
             {
@@ -51,7 +51,7 @@ namespace DiscordBot.Commands.SlashCommands
                 }
             }
             string error = "Unable to create reminder.";
-            string description; 
+            string description = ""; 
 
             if (DateTime.TryParse($"{date} {time}", out sendTime))
             {
@@ -62,15 +62,13 @@ namespace DiscordBot.Commands.SlashCommands
                 }
                 else
                 {
-
                     ReminderEngine.CreateReminder(ctx.Guild.Id, message, ctx.Member.Id, sendTime);
-                    response = new DiscordMessageBuilder()
-                                .AddEmbed(new DiscordEmbedBuilder()
-                                {
-                                    Title = "Successfully created reminder",
-                                    Description = $"{sendTime} : {message}",
-                                    Color = DiscordColor.Green
-                                });
+                    response.AddEmbed(new DiscordEmbedBuilder()
+                    {
+                        Title = "Successfully created reminder",
+                        Description = $"{sendTime} : {message}",
+                        Color = DiscordColor.Green
+                    });
                 }
             }
             else
