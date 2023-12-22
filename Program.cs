@@ -123,6 +123,10 @@ namespace DiscordBot
         {
             DiscordMember duser;
             e.Guild.Members.TryGetValue(e.Author.Id, out duser);
+            if(duser == null)
+            {
+                return;
+            }
 
             LocalUserEngine userEngine = new LocalUserEngine();
             
