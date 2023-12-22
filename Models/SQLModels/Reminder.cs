@@ -8,27 +8,87 @@ namespace DiscordBot.Models
 {
 	public class Reminder
 	{
-		public int ReminderID { get; set; }
+		public int ID { get; set; }
 		public string Message { get; set; }
-		public string OwnerId { get; set; }
-		public bool Sent { get; set; }
-		public DateTime SendInstant { get; set; }
+		public ulong OwnerId { get; set; }
+		public bool Sent { get; set; } = false;
+		public DateTime SendTime { get; set; }
 		public bool Recurring { get; set; }
 		public string Frequency { get; set; }
 		public string DayOfWeek { get; set; }
 		public bool SoftDeleted { get; set; }
 
-		public Reminder(int ReminderID_, string Message_, string OwnerId_, bool Sent_, DateTime SendInstant_, bool Recurring_, string Frequency_, string DayOfWeek_, bool SoftDeleted_)
+		public Reminder(int id, string message, ulong ownerId, DateTime sendTime, bool recurring = false, string frequency = null, string dayOfWeek = null, bool softDeleted = false)
 		{
-			this.ReminderID = ReminderID_;
-			this.Message = Message_;
-			this.OwnerId = OwnerId_;
-			this.Sent = Sent_;
-			this.SendInstant = SendInstant_;
-			this.Recurring = Recurring_;
-			this.Frequency = Frequency_;
-			this.DayOfWeek = DayOfWeek_;
-			this.SoftDeleted = SoftDeleted_;
+			this.ID = id;
+			this.Message = message;
+			this.OwnerId = ownerId;
+			this.SendTime = sendTime;
+			this.Recurring = recurring;
+			this.Frequency = frequency;
+			this.DayOfWeek = dayOfWeek;
+			this.SoftDeleted = softDeleted;
 		}
+
+		public bool IsStale()
+        {
+			return false ;
+        }
+
+		public bool CanSend()
+        {
+			return true;
+        }
+
+		public bool ReadyToSend()
+        {
+			return true;
+        }
+
+		public string ReminderMessage()
+        {
+			return "";
+        }
+
+		public bool Send()
+        {
+			this.SendTime = DateTime.Now;
+			this.Sent = true;
+			return true;
+        }
+
+		public int Compare(Reminder reminder)
+        {
+			// Scenarios where the send instant are different
+			if(SendTime < reminder.SendTime)
+            {
+				return 1;
+            }
+			else if( reminder.SendTime > SendTime)
+            {
+				return -1;
+            }
+
+			// Resort to sorting with IDs if the sent instants are the same
+            if (Equals(reminder))
+            {
+				return 0;
+            }
+			else if( reminder.ID < ID)
+            {
+				return 1;
+            }
+			return -1;
+
+        }
+
+		public bool Equals(Reminder reminder)
+        {
+			return ID == reminder.ID;
+        }
+
+
+
+
 	}
 }

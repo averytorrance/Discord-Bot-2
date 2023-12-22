@@ -26,6 +26,8 @@ namespace DiscordBot
 
         public static BlackListEngine BlackList { get; private set; }
 
+        public static ReminderEngine Reminders { get; private set; }
+
         static async Task Main(string[] args)
         {
             //1. Get the details of your config.json file by deserialising it
@@ -76,13 +78,16 @@ namespace DiscordBot
             Commands.RegisterCommands<MiscAdminCommands>();
             Commands.RegisterCommands<OwnerCommands>();
 
-            slashCommands.RegisterCommands<PollCommands>(427296058310393856);
-            slashCommands.RegisterCommands<ProfileCommands>(427296058310393856);
+            slashCommands.RegisterCommands<PollCommands>();
+            slashCommands.RegisterCommands<ReminderCommands>(427296058310393856);
+            slashCommands.RegisterCommands<ReminderCommands>(436420385857077288);
+            slashCommands.RegisterCommands<ProfileCommands>();
 
             //7.1 Command Error Handler
             Commands.CommandErrored += CommandErrorHandler;
             slashCommands.SlashCommandErrored += SlashCommandErrorHandler;
 
+            _InitalizeReminders();
 
             //8. Connect to get the Bot online
             await Client.ConnectAsync();
@@ -92,6 +97,20 @@ namespace DiscordBot
         private static Task OnClientReady(DiscordClient sender, ReadyEventArgs e)
         {
             return Task.CompletedTask;
+        }
+
+        /// <summary>
+        /// Initalizes the reminder engine
+        /// </summary>
+        private static void _InitalizeReminders()
+        {
+            foreach(ulong guildID in Program.Client.Guilds.Keys)
+            {
+                ReminderEngine.Load(guildID);
+            }
+            ReminderEngine.SendStaleReminders();
+
+
         }
 
         /// <summary>
@@ -172,7 +191,7 @@ namespace DiscordBot
         /// <param name="sender"></param>
         /// <param name="error"></param>
         /// <returns></returns>
-        private static async Task CommandErrorHandler(SlashCommandsExtension sender, SlashCommandErrorEventArgs error)
+        private static async Task SlashCommandErrorHandler(SlashCommandsExtension sender, SlashCommandErrorEventArgs error)
         {
 
             await error.Context.Channel.SendMessageAsync(DiscordMessageAssets.GenerateErrorMessage(error.Exception));
