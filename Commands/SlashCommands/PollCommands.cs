@@ -18,6 +18,7 @@ namespace DiscordBot.Commands.SlashCommands
                                                         [Option("option2", "2nd poll option")] string option2,
                                                         [Option("option3", "3rd poll option")] string option3 = "",
                                                         [Option("option4", "4th poll option")] string option4 = "",
+                                                        [Option("option5", "5th poll option")] string option5 = "",
                                                         [Option("timelimit", "The time set on this poll in minutes")] long timeLimit = 5)
         {
             var interactvity = Program.Client.GetInteractivity(); //Getting the Interactivity Module
@@ -28,7 +29,8 @@ namespace DiscordBot.Commands.SlashCommands
                 { DiscordEmoji.FromName(Program.Client, ":one:", false), new PollOption(option1)},
                 { DiscordEmoji.FromName(Program.Client, ":two:", false), new PollOption(option2)},
                 { DiscordEmoji.FromName(Program.Client, ":three:", false), new PollOption(option3)},
-                { DiscordEmoji.FromName(Program.Client, ":four:", false), new PollOption(option4)}
+                { DiscordEmoji.FromName(Program.Client, ":four:", false), new PollOption(option4)},
+                { DiscordEmoji.FromName(Program.Client, ":five:", false), new PollOption(option5)}
             };
 
             Poll poll = new Poll(question, optionMap, timeLimit);
