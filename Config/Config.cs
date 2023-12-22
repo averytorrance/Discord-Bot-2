@@ -3,10 +3,6 @@ using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using System;
-using System.Linq.Expressions;
-using System.Reflection;
-using DiscordBot.Config;
-using DSharpPlus.CommandsNext;
 using DiscordBot.Engines;
 
 

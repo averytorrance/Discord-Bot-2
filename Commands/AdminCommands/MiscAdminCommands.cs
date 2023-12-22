@@ -1,5 +1,4 @@
 ﻿using DSharpPlus.CommandsNext;
-using DSharpPlus.Entities;
 using DSharpPlus.CommandsNext.Attributes;
 using System.Threading.Tasks;
 using DiscordBot.Engines;

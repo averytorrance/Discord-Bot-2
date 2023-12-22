@@ -1,12 +1,8 @@
 ﻿using DSharpPlus;
 using DSharpPlus.Entities;
-using DSharpPlus.Interactivity.Extensions;
 using DSharpPlus.SlashCommands;
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
-using DiscordBot.Classes;
-using DiscordBot.UserProfile;
 using DiscordBot.Engines;
 using DiscordBot.Assets;
 using DiscordBot.Config;

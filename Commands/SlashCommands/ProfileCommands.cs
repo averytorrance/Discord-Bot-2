@@ -2,10 +2,7 @@
 using DSharpPlus.Entities;
 using DSharpPlus.Interactivity.Extensions;
 using DSharpPlus.SlashCommands;
-using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
-using DiscordBot.Classes;
 using DiscordBot.UserProfile;
 
 namespace DiscordBot.Commands.SlashCommands
