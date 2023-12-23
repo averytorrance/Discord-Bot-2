@@ -3,7 +3,11 @@ using DSharpPlus.CommandsNext.Attributes;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Linq;
-using System; 
+using System;
+using RestSharp;
+using DiscordBot.Config;
+using Newtonsoft.Json;
+using DiscordBot.Engines;
 
 namespace DiscordBot.Commands
 {
@@ -22,6 +26,21 @@ namespace DiscordBot.Commands
             List<string> selections = joinedValues.Split(',').ToList();
             int index = (new Random()).Next(selections.Count);
             await ctx.Channel.SendMessageAsync(selections[index]);
+        }
+
+        /// <summary>
+        /// Selects a random item from a list of input items
+        /// </summary>
+        /// <param name="ctx">command context</param>
+        /// <param name="names">input parameters. handling added to use ',' as the delimeter for each item.</param>
+        /// <returns></returns>
+        [Command("test")]
+        public async Task test(CommandContext ctx)
+        {
+            string channelId = "UCVm_MQHtSoafvlKbd8fqNCA"; // lopgger joshua
+            YoutubeAPIEngine engine = new YoutubeAPIEngine();
+
+            await ctx.Channel.SendMessageAsync(engine.GetMostRecentVideo(channelId));
         }
     }
 }

@@ -24,26 +24,26 @@ namespace DiscordBot.Config
         public string Prefix { get; set; }
 
         /// <summary>
+        /// API Key for Youtube APIs
+        /// </summary>
+        public string YoutubeAPIKey { get; set; }
+
+        /// <summary>
         /// Filename to save the configuration to
         /// </summary>
         [JsonIgnore]
-        public string FileName { get { return "config.json"; } }
+        private static string FileName = "config.json";
         
         /// <summary>
         /// Generates the Config object from the config file
         /// </summary>
         /// <returns></returns>
-        public async Task GenerateConfig() 
+        public static BotConfig GetConfig()
         {
-            using (StreamReader sr = new StreamReader(FileName, new UTF8Encoding(false)))
-            {
-                string json = await sr.ReadToEndAsync(); //Reading whole file
-                BotConfig obj = JsonConvert.DeserializeObject<BotConfig>(json); //Deserialising file
-
-                this.Token = obj.Token; //Setting our token & prefix that we extracted from our file
-                this.Prefix = obj.Prefix;
-            }
+            JSONEngine engine = new JSONEngine();
+            return engine.GenerateObject<BotConfig>(FileName);
         }
+
     }
 
     /// <summary>

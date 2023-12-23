@@ -24,7 +24,7 @@ namespace DiscordBot.Engines
         {
             if (!reminderStates.ContainsKey(serverID))
             {
-                reminderStates.Add(serverID, ReminderState.Load(serverID));
+                reminderStates.Add(serverID, ReminderState.Load<ReminderState>(new ReminderState(serverID)));
             }
         }
 
@@ -101,13 +101,8 @@ namespace DiscordBot.Engines
             }
         }
 
-        public class ReminderState
+        public class ReminderState : EngineState
         {
-            /// <summary>
-            /// Server ID for this reminder state
-            /// </summary>
-            public ulong ServerID;
-
             /// <summary>
             /// ID of the next reminder that is created
             /// </summary>
@@ -124,55 +119,12 @@ namespace DiscordBot.Engines
             public List<Reminder> _sentReminders { get; set; } = new List<Reminder>();
 
             [JsonIgnore]
-            public static string _File = "Reminders.JSON";
+            public override string StateFile_ { get; } = "Reminders.JSON";
 
             public ReminderState(ulong serverID)
             {
                 ServerID = serverID;
             }
-
-            /// <summary>
-            /// Filepath to the Reminders JSON.
-            /// </summary>
-            /// <param name="serverID"></param>
-            /// <returns></returns>
-            private static string _FileDirectory(ulong serverID)
-            {
-                return $"{ServerConfig.ServerDirectory(serverID)}";
-            }
-
-            /// <summary>
-            /// File to store this reminder state
-            /// </summary>
-            /// <param name="serverID"></param>
-            /// <returns></returns>
-            private static string ReminderFile(ulong serverID)
-            {
-                return $"{_FileDirectory(serverID)}{_File}";
-            }
-
-            /// <summary>
-            /// Creates a Reminder Engine from the JSON file
-            /// </summary>
-            /// <returns></returns>
-            public static ReminderState Load(ulong serverID)
-            {
-                JSONEngine engine = new JSONEngine();
-
-                if (!Directory.Exists(_FileDirectory(serverID)))
-                {
-                    Directory.CreateDirectory(_FileDirectory(serverID));
-                }
-
-                string file = ReminderFile(serverID);
-
-                if (!File.Exists(file))
-                {
-                    engine.OverwriteObjectFile(new ReminderState(serverID), file);
-                }
-                return engine.GenerateObject<ReminderState>(file);
-            }
-
 
             /// <summary>
             /// Creates a reminder
@@ -248,17 +200,6 @@ namespace DiscordBot.Engines
                 }
                 SaveState();
             }
-
-            /// <summary>
-            /// Saves the engine state
-            /// </summary>
-            /// <returns></returns>
-            public bool SaveState()
-            {
-                JSONEngine engine = new JSONEngine();
-                return engine.OverwriteObjectFile(this, ReminderFile(this.ServerID));
-            }
-
 
             /// <summary>
             /// Validates the Engine State

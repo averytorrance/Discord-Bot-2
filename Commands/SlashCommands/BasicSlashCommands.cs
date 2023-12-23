@@ -10,7 +10,7 @@ using DSharpPlus.Interactivity.EventHandling;
 
 namespace DiscordBot.Commands.SlashCommands
 {
-    public class PollCommands : ApplicationCommandModule
+    public class BasicSlashCommands : ApplicationCommandModule
     {
         [SlashCommand("poll", "Create a poll")]
         public async Task Poll(InteractionContext ctx, [Option("question", "The question for the poll")] string question,
@@ -19,7 +19,7 @@ namespace DiscordBot.Commands.SlashCommands
                                                         [Option("option3", "3rd poll option")] string option3 = "",
                                                         [Option("option4", "4th poll option")] string option4 = "",
                                                         [Option("option5", "5th poll option")] string option5 = "",
-                                                        [Option("timelimit", "The time set on this poll in minutes")] long timeLimit = 5)
+                                                        [Option("timelimit", "The time set on this poll in minutes. Default is 5.")] long timeLimit = 5)
         {
             var interactvity = Program.Client.GetInteractivity(); //Getting the Interactivity Module
             TimeSpan timer = TimeSpan.FromMinutes(timeLimit); //Converting my time parameter to a timespan variable
@@ -54,5 +54,7 @@ namespace DiscordBot.Commands.SlashCommands
 
             await initialMessage.RespondAsync(poll.GeneratePollResults()); 
         }
+
+
     }
 }

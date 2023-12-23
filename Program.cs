@@ -22,6 +22,7 @@ namespace DiscordBot
     public sealed class Program
     {
         public static DiscordClient Client { get; private set; }
+
         public static CommandsNextExtension Commands { get; private set; }
 
         public static BlackListEngine BlackList { get; private set; }
@@ -31,8 +32,7 @@ namespace DiscordBot
         static async Task Main(string[] args)
         {
             //1. Get the details of your config.json file by deserialising it
-            BotConfig configJsonFile = new BotConfig();
-            await configJsonFile.GenerateConfig();
+            BotConfig configJsonFile = BotConfig.GetConfig();
             BlackList = new BlackListEngine();
 
 
@@ -78,7 +78,7 @@ namespace DiscordBot
             Commands.RegisterCommands<MiscAdminCommands>();
             Commands.RegisterCommands<OwnerCommands>();
 
-            slashCommands.RegisterCommands<PollCommands>();
+            slashCommands.RegisterCommands<BasicSlashCommands>();
             slashCommands.RegisterCommands<ReminderCommands>(427296058310393856);
             slashCommands.RegisterCommands<ReminderCommands>(436420385857077288);
             slashCommands.RegisterCommands<ProfileCommands>();

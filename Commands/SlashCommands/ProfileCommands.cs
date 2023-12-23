@@ -17,8 +17,6 @@ namespace DiscordBot.Commands.SlashCommands
         [SlashCommand("Profile", "Views a user's profile")]
         public async Task Profile(InteractionContext ctx, [Option("User", "The user to view")] DiscordUser member = null )
         {
-            var interactvity = Program.Client.GetInteractivity(); //Getting the Interactivity Module
-
             LocalUserEngine userEngine = new LocalUserEngine();
             if(member == null)
             {
