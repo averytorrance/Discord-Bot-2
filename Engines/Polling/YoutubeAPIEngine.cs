@@ -10,6 +10,8 @@ namespace DiscordBot.Engines
 {
     class YoutubeAPIEngine : APIEngine
     {
+        private static Dictionary<ulong, YoutubeEngineState> serverStates = new Dictionary<ulong, YoutubeEngineState>();
+
         /// <summary>
         /// Base URL for the API
         /// </summary>
@@ -81,9 +83,8 @@ namespace DiscordBot.Engines
         /// Constructor
         /// </summary>
         /// <param name="serverID">Discord Server ID for this state</param>
-        public YoutubeEngineState(ulong serverID)
+        public YoutubeEngineState(ulong serverID) : base(serverID) 
         {
-            ServerID = serverID;
             VideoIDs = new List<string>();
         }
 

@@ -58,6 +58,7 @@ namespace DiscordBot
             Client.Ready += OnClientReady;
             Client.MessageCreated += MessageSentHandler;
             Client.GuildMemberAdded += UserJoinedHandler;
+            Client.GuildAvailable += GuildAvailableHandler;
 
             //6. Set up the Commands Configuration
             CommandsNextConfiguration commandsConfig = new CommandsNextConfiguration()
@@ -87,10 +88,11 @@ namespace DiscordBot
             Commands.CommandErrored += CommandErrorHandler;
             slashCommands.SlashCommandErrored += SlashCommandErrorHandler;
 
-            _InitalizeReminders();
-
             //8. Connect to get the Bot online
             await Client.ConnectAsync();
+
+            _InitalizeReminders();
+
             await Task.Delay(-1);
         }
 
@@ -104,13 +106,20 @@ namespace DiscordBot
         /// </summary>
         private static void _InitalizeReminders()
         {
-            foreach(ulong guildID in Program.Client.Guilds.Keys)
-            {
-                ReminderEngine.Load(guildID);
-            }
-            ReminderEngine.SendStaleReminders();
+            new ReminderEngine();
+        }
 
-
+        /// <summary>
+        /// Handler for Populating objects once a discord server becomes availabe
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        /// <returns></returns>
+        private static async Task GuildAvailableHandler(DiscordClient sender, GuildCreateEventArgs e)
+        {
+            ///Load Reminder Engine States
+            ReminderEngine.CurrentEngine.Load(e.Guild.Id);
+            ReminderEngine.CurrentEngine.SendStaleReminders();
         }
 
         /// <summary>

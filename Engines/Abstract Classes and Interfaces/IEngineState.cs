@@ -28,6 +28,12 @@ namespace DiscordBot.Engines
         /// </summary>
         /// <returns></returns>
         string StateFile();
+
+        /// <summary>
+        /// Saves the EngineState
+        /// </summary>
+        /// <returns></returns>
+        bool SaveState();
     }
 
     public abstract class EngineState : IEngineState
@@ -41,7 +47,27 @@ namespace DiscordBot.Engines
         /// The name of the file storing the state
         /// </summary>
         [JsonIgnore]
-        public abstract string StateFile_ { get;}
+        public abstract string StateFile_ { get; }
+
+        /// <summary>
+        /// Default constructor
+        /// </summary>
+        /// <param name="serverID">Discord ServerID</param>
+        public EngineState(ulong serverID)
+        {
+            ServerID = serverID;
+        }
+
+        /// <summary>
+        /// Load an engine state of specific type
+        /// </summary>
+        /// <typeparam name="T">engine state type</typeparam>
+        /// <param name="v">object to cast</param>
+        /// <returns></returns>
+        internal static T Load<T>(object v)
+        {
+            return (T)v;
+        }
 
         /// <summary>
         /// Filepath to the Reminders JSON.
@@ -74,7 +100,6 @@ namespace DiscordBot.Engines
         public static T Load<T>(IEngineState engineState)
         {
             JSONEngine engine = new JSONEngine();
-            ulong serverID = engineState.ServerID;
 
             if (!Directory.Exists(engineState.FileDirectory()))
             {
@@ -99,6 +124,5 @@ namespace DiscordBot.Engines
             JSONEngine engine = new JSONEngine();
             return engine.OverwriteObjectFile(this, StateFile());
         }
-
     }
 }

@@ -10,35 +10,18 @@ using DiscordBot.Config;
 
 namespace DiscordBot.Engines
 {
-    public class ReminderEngine
+    public class ReminderEngine : ServerEngine
     {
-        private static Dictionary<ulong, ReminderState> reminderStates = new Dictionary<ulong, ReminderState>();
+        public static ReminderEngine CurrentEngine;
 
-        public static bool TaskRunning = false;
+        public static bool TaskRunning;
 
-        /// <summary>
-        /// Loads all reminder state files
-        /// </summary>
-        /// <param name="serverID"></param>
-        public static void Load(ulong serverID)
+        public override Type EngineStateType { get; } = typeof(ReminderState);
+
+
+        public ReminderEngine() : base()
         {
-            if (!reminderStates.ContainsKey(serverID))
-            {
-                reminderStates.Add(serverID, ReminderState.Load<ReminderState>(new ReminderState(serverID)));
-            }
-        }
-
-        /// <summary>
-        /// Saves the state of all reminder states
-        /// </summary>
-        public static void Save()
-        {
-            ReminderState state;
-            foreach (ulong serverID in reminderStates.Keys)
-            {
-                reminderStates.TryGetValue(serverID, out state);
-                state.SaveState();
-            }
+            CurrentEngine = this;
         }
 
         /// <summary>
@@ -48,23 +31,23 @@ namespace DiscordBot.Engines
         /// <param name="message"></param>
         /// <param name="ownerID"></param>
         /// <param name="sendTime"></param>
-        public static void CreateReminder(ulong serverID, string message, ulong ownerID, DateTime sendTime)
+        public void CreateReminder(ulong serverID, string message, ulong ownerID, DateTime sendTime)
         {
             Load(serverID);
             ReminderState state;
-            reminderStates.TryGetValue(serverID, out state);
+            TryGetValue(serverID, out state);
             state.CreateReminder(message, ownerID, sendTime);
         }
 
         /// <summary>
         /// Triggers a send reminder for all servers
         /// </summary>
-        public static async void SendReminders()
+        public async void SendReminders()
         {
             await Task.Run(() =>
             {
                 TaskRunning = true;
-                foreach (ReminderState state in reminderStates.Values)
+                foreach (ReminderState state in serverStates.Values)
                 {
                     state.SendReminder();
                 }
@@ -75,12 +58,16 @@ namespace DiscordBot.Engines
         /// <summary>
         /// Triggers send stale remidners for all servers
         /// </summary>
-        public static async void SendStaleReminders()
+        public async void SendStaleReminders()
         {
+            if(serverStates == null)
+            {
+                return;
+            }
             await Task.Run(() =>
             {
                 TaskRunning = true;
-                foreach (ReminderState state in reminderStates.Values)
+                foreach (ReminderState state in serverStates.Values)
                 {
                     state.SendStaleReminders();
                 }
@@ -92,10 +79,15 @@ namespace DiscordBot.Engines
         /// Trigers a send reminder for a specific discord server
         /// </summary>
         /// <param name="serverID"></param>
-        public static void SendReminders(ulong serverID)
+        public  void SendReminders(ulong serverID)
         {
+            if (serverStates == null)
+            {
+                return;
+            }
+
             ReminderState state;
-            if (reminderStates.TryGetValue(serverID, out state))
+            if (TryGetValue(serverID, out state))
             {
                 state.SendReminder();
             }
@@ -121,9 +113,13 @@ namespace DiscordBot.Engines
             [JsonIgnore]
             public override string StateFile_ { get; } = "Reminders.JSON";
 
-            public ReminderState(ulong serverID)
+            /// <summary>
+            /// Constructor
+            /// </summary>
+            /// <param name="serverID"></param>
+            public ReminderState(ulong serverID) : base(serverID)
             {
-                ServerID = serverID;
+
             }
 
             /// <summary>

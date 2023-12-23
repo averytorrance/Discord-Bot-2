@@ -180,6 +180,7 @@
     <Compile Include="Config\Config.cs" />
     <Compile Include="Engines\Abstract Classes and Interfaces\APIEngine.cs" />
     <Compile Include="Engines\Abstract Classes and Interfaces\IEngineState.cs" />
+    <Compile Include="Engines\Abstract Classes and Interfaces\IServerEngine.cs" />
     <Compile Include="Engines\Polling\YoutubeAPIEngine.cs" />
     <Compile Include="Engines\BlackListEngine.cs" />
     <Compile Include="Engines\DiscordServerEngine.cs" />

@@ -58,7 +58,7 @@ namespace DiscordBot.Commands.SlashCommands
                 }
                 else
                 {
-                    ReminderEngine.CreateReminder(ctx.Guild.Id, message, ctx.Member.Id, sendTime);
+                    ReminderEngine.CurrentEngine.CreateReminder(ctx.Guild.Id, message, ctx.Member.Id, sendTime);
                     response.AddEmbed(new DiscordEmbedBuilder()
                     {
                         Title = "Successfully created reminder",

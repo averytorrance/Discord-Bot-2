@@ -1,0 +1,107 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace DiscordBot.Engines
+{
+    public interface IServerEngine
+    {
+        /// <summary>
+        /// Dictionary mapping server states to a state object
+        /// </summary>
+        Dictionary<ulong, IEngineState> serverStates { get; set; }
+
+        /// <summary>
+        /// Loads a specific server's engine state. 
+        /// Creates a new engine state if the file does not exist
+        /// </summary>
+        /// <param name="serverID"></param>
+        void Load(ulong serverID);
+
+        /// <summary>
+        /// Saves the state of all states in serverStates
+        /// </summary>
+        void Save();
+    }
+
+    public abstract class ServerEngine : IServerEngine
+    {
+        /// <summary>
+        /// Dictionary to store enginestates for specific servers
+        /// Keys are the discord server IDs
+        /// </summary>
+        public Dictionary<ulong, IEngineState> serverStates { get; set; }
+
+        /// <summary>
+        /// Type of EngineStates that this engine should contain
+        /// </summary>
+        public abstract Type EngineStateType { get; }
+
+        public ServerEngine()
+        {
+            serverStates = new Dictionary<ulong, IEngineState>();
+        }
+
+        /// <summary>
+        /// Loads a specific server into the serverStates dictionary
+        /// </summary>
+        /// <param name="serverID"></param>
+        public void Load(ulong serverID)
+        {
+            if (!serverStates.ContainsKey(serverID))
+            {
+                ConstructorInfo constructor = EngineStateType.GetConstructor(new[] { typeof(ulong) });
+                Object state = constructor.Invoke(new Object[] { serverID });
+                serverStates.Add(serverID, 
+                    EngineState.Load<EngineState>( Convert.ChangeType(state, EngineStateType))
+                    );
+            }
+        }
+
+        public bool TryGetValue<T>(ulong serverID, out T state)
+        {
+            state = default(T);
+            IEngineState foundState;
+            if(serverStates.TryGetValue(serverID, out foundState))
+            {
+                if (foundState is T)
+                {
+                    state = (T)foundState;
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Saves the state of all reminder states
+        /// </summary>
+        public void Save()
+        {
+            Validate();
+            foreach (var state in serverStates.Values)
+            {
+                state.SaveState();
+            }
+        }
+
+        /// <summary>
+        /// Validates the dicitonary states
+        /// </summary>
+        /// <returns></returns>
+        public bool Validate()
+        {
+            foreach(var state in serverStates.Values)
+            {
+                if(state.GetType() != EngineStateType.GetType())
+                {
+                    throw new Exception("Different state type found in ServerStates dictionary");
+                } 
+            }
+            return true;
+        }
+    }
+}
