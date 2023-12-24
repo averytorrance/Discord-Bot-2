@@ -172,6 +172,7 @@
     <Compile Include="Commands\AdminCommands\ConfigCommands.cs" />
     <Compile Include="Commands\AdminCommands\MiscAdminCommands.cs" />
     <Compile Include="Commands\BasicCommands.cs" />
+    <Compile Include="Commands\WatchCommands.cs" />
     <Compile Include="Commands\GameCommands\BasicGameCommands.cs" />
     <Compile Include="Commands\OwnerCommands\OwnerCommands.cs" />
     <Compile Include="Commands\SlashCommands\ProfileCommands.cs" />

@@ -59,8 +59,11 @@ namespace DiscordBot
             Client.MessageCreated += MessageSentHandler;
             Client.GuildMemberAdded += UserJoinedHandler;
             Client.GuildAvailable += GuildAvailableHandler;
+            Client.MessageReactionAdded += MessageReactionAddedHandler;
+            Client.MessageReactionRemoved += MessageReactionRemoveHandler;
+            Client.MessageDeleted += MessageDeleteHandler;
 
-            //6. Set up the Commands Configuration
+        //6. Set up the Commands Configuration
             CommandsNextConfiguration commandsConfig = new CommandsNextConfiguration()
             {
                 StringPrefixes = new string[] { configJsonFile.Prefix },
@@ -78,6 +81,7 @@ namespace DiscordBot
             Commands.RegisterCommands<AdminCommands>();
             Commands.RegisterCommands<MiscAdminCommands>();
             Commands.RegisterCommands<OwnerCommands>();
+            Commands.RegisterCommands<WatchCommands>();
 
             slashCommands.RegisterCommands<BasicSlashCommands>();
             slashCommands.RegisterCommands<ReminderCommands>(427296058310393856);
@@ -91,7 +95,7 @@ namespace DiscordBot
             //8. Connect to get the Bot online
             await Client.ConnectAsync();
 
-            _InitalizeReminders();
+            _InitalizeEngines();
 
             await Task.Delay(-1);
         }
@@ -104,9 +108,11 @@ namespace DiscordBot
         /// <summary>
         /// Initalizes the reminder engine
         /// </summary>
-        private static void _InitalizeReminders()
+        private static void _InitalizeEngines()
         {
             new ReminderEngine();
+            new WatchRatingsEngine();
+            new WatchPlanEngine();
         }
 
         /// <summary>
@@ -120,6 +126,8 @@ namespace DiscordBot
             ///Load Reminder Engine States
             ReminderEngine.CurrentEngine.Load(e.Guild.Id);
             ReminderEngine.CurrentEngine.SendStaleReminders();
+            WatchRatingsEngine.CurrentEngine.Load(e.Guild.Id);
+            WatchPlanEngine.CurrentEngine.Load(e.Guild.Id);
         }
 
         /// <summary>
@@ -154,7 +162,54 @@ namespace DiscordBot
                 user.AddToDebt();
                 userEngine.UpdateUser(user);
             }
+            if (WatchPlanEngine.IsWatchPlanChannelMessage(e.Message))
+            {
+                WatchPlanEngine.CurrentEngine.AddWatchEntry(e.Message);
+            }
 
+        }
+
+        /// <summary>
+        /// Handler for when a message gets deleted
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        /// <returns></returns>
+        private static async Task MessageDeleteHandler(DiscordClient sender, MessageDeleteEventArgs e)
+        {
+            if (WatchPlanEngine.IsWatchPlanChannelMessage(e.Message))
+            {
+                WatchPlanEngine.CurrentEngine.DeleteWatchEntry(e.Message);
+            }
+        }
+
+        /// <summary>
+        /// Handler for when a reaction is added to a message
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        /// <returns></returns>
+        public static async Task MessageReactionAddedHandler(DiscordClient sender, MessageReactionAddEventArgs e)
+        {
+            if(WatchRatingsEngine.IsWatchRatingsChannelMessage(e.Message))
+            {
+                WatchRatingsEngine.CurrentEngine.UpdateWatchEntry(e.Message);
+            }
+            
+        }
+
+        /// <summary>
+        /// Handler for when a reaction is removed from a message
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        /// <returns></returns>
+        public static async Task MessageReactionRemoveHandler(DiscordClient sender, MessageReactionRemoveEventArgs e)
+        {
+            if (WatchRatingsEngine.IsWatchRatingsChannelMessage(e.Message))
+            {
+                WatchRatingsEngine.CurrentEngine.UpdateWatchEntry(e.Message);
+            }
         }
 
         /// <summary>

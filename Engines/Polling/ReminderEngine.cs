@@ -25,6 +25,21 @@ namespace DiscordBot.Engines
         }
 
         /// <summary>
+        /// Load reminder states
+        /// </summary>
+        /// <param name="serverID"></param>
+        public override void Load(ulong serverID)
+        {
+            ReminderState state;
+            if (TryGetValue(serverID, out state))
+            {
+                serverStates.Remove(serverID);
+            }
+            state = EngineState.Load<ReminderState>(new ReminderState(serverID));
+            serverStates.Add(serverID, state);
+        }
+
+        /// <summary>
         /// Creates a reminder for a specific server
         /// </summary>
         /// <param name="serverID"></param>
@@ -92,143 +107,142 @@ namespace DiscordBot.Engines
                 state.SendReminder();
             }
         }
+    }
 
-        public class ReminderState : EngineState
+    public class ReminderState : EngineState
+    {
+        /// <summary>
+        /// ID of the next reminder that is created
+        /// </summary>
+        public int _CurrentID = 0;
+
+        /// <summary>
+        /// A list of scheduled reminders
+        /// </summary>
+        public List<Reminder> _reminders { get; set; } = new List<Reminder>();
+
+        /// <summary>
+        /// A list of sent reminders
+        /// </summary>
+        public List<Reminder> _sentReminders { get; set; } = new List<Reminder>();
+
+        [JsonIgnore]
+        public override string StateFile_ { get; } = "Reminders.JSON";
+
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="serverID"></param>
+        public ReminderState(ulong serverID) : base(serverID)
         {
-            /// <summary>
-            /// ID of the next reminder that is created
-            /// </summary>
-            public int _CurrentID = 0;
 
-            /// <summary>
-            /// A list of scheduled reminders
-            /// </summary>
-            public List<Reminder> _reminders { get; set; } = new List<Reminder>();
+        }
 
-            /// <summary>
-            /// A list of sent reminders
-            /// </summary>
-            public List<Reminder> _sentReminders { get; set; } = new List<Reminder>();
+        /// <summary>
+        /// Creates a reminder
+        /// </summary>
+        /// <param name="message">message of the reminder</param>
+        /// <param name="ownerID">Discord ID of the owner</param>
+        /// <param name="sendTime">DateTime of when to send the reminder, in server time</param>
+        /// <returns>the ID of the created reminder</returns>
+        public int CreateReminder(string message, ulong ownerID, DateTime sendTime)
+        {
+            Reminder reminder = new Reminder(_CurrentID, message, ownerID, sendTime);
 
-            [JsonIgnore]
-            public override string StateFile_ { get; } = "Reminders.JSON";
-
-            /// <summary>
-            /// Constructor
-            /// </summary>
-            /// <param name="serverID"></param>
-            public ReminderState(ulong serverID) : base(serverID)
+            if (reminder.IsStale())
             {
-
+                throw new Exception("Attempted to create a reminder for a time in the past.");
             }
-
-            /// <summary>
-            /// Creates a reminder
-            /// </summary>
-            /// <param name="message">message of the reminder</param>
-            /// <param name="ownerID">Discord ID of the owner</param>
-            /// <param name="sendTime">DateTime of when to send the reminder, in server time</param>
-            /// <returns>the ID of the created reminder</returns>
-            public int CreateReminder(string message, ulong ownerID, DateTime sendTime)
+            else
             {
-                Reminder reminder = new Reminder(_CurrentID, message, ownerID, sendTime);
-                
-                if (reminder.IsStale())
-                {
-                    throw new Exception("Attempted to create a reminder for a time in the past.");
-                }
-                else
-                {
-                    _addReminder(reminder);
-                }
-                return reminder.ID;
+                _addReminder(reminder);
             }
+            return reminder.ID;
+        }
 
-            /// <summary>
-            /// Adds a reminder to the reminders list and resorts it.
-            /// </summary>
-            /// <param name="reminder">reminder to add to the list</param>
-            private void _addReminder(Reminder reminder)
+        /// <summary>
+        /// Adds a reminder to the reminders list and resorts it.
+        /// </summary>
+        /// <param name="reminder">reminder to add to the list</param>
+        private void _addReminder(Reminder reminder)
+        {
+            _reminders.Add(reminder);
+            _reminders = _reminders.OrderByDescending(x => x.SendTime).ThenBy(x => x.ID).ToList();
+            _CurrentID++;
+            SaveState();
+        }
+
+        /// <summary>
+        /// Sends a reminder and saves the state
+        /// </summary>
+        public void SendReminder()
+        {
+            Reminder reminder = _reminders.Last();
+            while (reminder.ReadyToSend())
             {
-                _reminders.Add(reminder);
-                _reminders = _reminders.OrderByDescending(x => x.SendTime).ThenBy(x => x.ID).ToList();
-                _CurrentID++;
-                SaveState();
+                _sendReminder(reminder);
+                reminder = _reminders.Last();
             }
+            SaveState();
+        }
 
-            /// <summary>
-            /// Sends a reminder and saves the state
-            /// </summary>
-            public void SendReminder()
-            {
-                Reminder reminder = _reminders.Last();
-                while (reminder.ReadyToSend())
-                {
-                    _sendReminder(reminder);
-                    reminder = _reminders.Last();
-                }
-                SaveState();
-            }
+        /// <summary>
+        /// Sends a reminder
+        /// </summary>
+        /// <param name="reminder"></param>
+        private void _sendReminder(Reminder reminder)
+        {
+            reminder.Send();
+            _reminders.Remove(reminder);
+            _sentReminders.Add(reminder);
+        }
 
-            /// <summary>
-            /// Sends a reminder
-            /// </summary>
-            /// <param name="reminder"></param>
-            private void _sendReminder(Reminder reminder)
+        /// <summary>
+        /// Sends all of the stale reminders
+        /// </summary>
+        public void SendStaleReminders()
+        {
+            List<Reminder> staleReminders = _reminders.Where(x => x.IsStale()).ToList();
+
+            foreach (Reminder reminder in staleReminders)
             {
                 reminder.Send();
                 _reminders.Remove(reminder);
                 _sentReminders.Add(reminder);
             }
+            SaveState();
+        }
 
-            /// <summary>
-            /// Sends all of the stale reminders
-            /// </summary>
-            public void SendStaleReminders()
+        /// <summary>
+        /// Validates the Engine State
+        /// </summary>
+        /// <returns>a list with validation warnings. </returns>
+        public List<ValidationWarnings> Validate()
+        {
+            List<ValidationWarnings> warnings = new List<ValidationWarnings>();
+
+            if (_reminders.Where(x => x.Sent).ToList().Count() > 0)
             {
-                List<Reminder> staleReminders = _reminders.Where(x => x.IsStale()).ToList();
-
-                foreach (Reminder reminder in staleReminders)
-                {
-                    reminder.Send();
-                    _reminders.Remove(reminder);
-                    _sentReminders.Add(reminder);
-                }
-                SaveState();
+                warnings.Add(ValidationWarnings.UnsentSentReminders);
             }
 
-            /// <summary>
-            /// Validates the Engine State
-            /// </summary>
-            /// <returns>a list with validation warnings. </returns>
-            public List<ValidationWarnings> Validate()
+            if (_sentReminders.Where(x => !x.Sent).ToList().Count() > 0)
             {
-                List<ValidationWarnings> warnings = new List<ValidationWarnings>();
-
-                if (_reminders.Where(x => x.Sent).ToList().Count() > 0)
-                {
-                    warnings.Add(ValidationWarnings.UnsentSentReminders);
-                }
-
-                if (_sentReminders.Where(x => !x.Sent).ToList().Count() > 0)
-                {
-                    warnings.Add(ValidationWarnings.SentUnsentReminders);
-                }
-
-                return warnings;
-
+                warnings.Add(ValidationWarnings.SentUnsentReminders);
             }
 
-            /// <summary>
-            /// Validation Warnings
-            /// </summary>
-            public enum ValidationWarnings
-            {
-                UnsentSentReminders,
-                SentUnsentReminders,
-            }
+            return warnings;
 
         }
 
+        /// <summary>
+        /// Validation Warnings
+        /// </summary>
+        public enum ValidationWarnings
+        {
+            UnsentSentReminders,
+            SentUnsentReminders,
+        }
     }
-}
+
+ }

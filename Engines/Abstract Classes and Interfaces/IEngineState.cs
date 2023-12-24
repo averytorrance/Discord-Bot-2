@@ -58,16 +58,6 @@ namespace DiscordBot.Engines
             ServerID = serverID;
         }
 
-        /// <summary>
-        /// Load an engine state of specific type
-        /// </summary>
-        /// <typeparam name="T">engine state type</typeparam>
-        /// <param name="v">object to cast</param>
-        /// <returns></returns>
-        internal static T Load<T>(object v)
-        {
-            return (T)v;
-        }
 
         /// <summary>
         /// Filepath to the Reminders JSON.
@@ -121,8 +111,16 @@ namespace DiscordBot.Engines
         /// <returns></returns>
         public bool SaveState()
         {
-            JSONEngine engine = new JSONEngine();
-            return engine.OverwriteObjectFile(this, StateFile());
+            try
+            {
+                JSONEngine engine = new JSONEngine();
+                return engine.OverwriteObjectFile(this, StateFile());
+            }
+            catch(Exception e)
+            {
+                Console.WriteLine("Failed to save state");
+                return false;
+            }
         }
     }
 }

@@ -5,13 +5,135 @@ using System.Text;
 using System.Threading.Tasks;
 using DSharpPlus.Entities;
 using DiscordBot.UserProfile;
+using Newtonsoft.Json;
+using DiscordBot.Config;
+using System.Threading;
 
 namespace DiscordBot.Engines
 {
-    class WatchRatingsEngine
+    public class WatchRatingsEngine : ServerEngine
     {
-        public WatchEntry CreateWatchEntry(DiscordMessage message)
+        public static WatchRatingsEngine CurrentEngine;
+
+        public static bool TaskRunning;
+
+        public override Type EngineStateType { get; } = typeof(WatchRatingsEngineState);
+
+        public static readonly Dictionary<DiscordEmoji, int> ScoreMap =
+            new Dictionary <DiscordEmoji, int>()
+            {
+                { DiscordEmoji.FromName(Program.Client, ":one:", false), 1},
+                { DiscordEmoji.FromName(Program.Client, ":two:", false), 2},
+                { DiscordEmoji.FromName(Program.Client, ":three:", false), 3},
+                { DiscordEmoji.FromName(Program.Client, ":four:", false), 4},
+                { DiscordEmoji.FromName(Program.Client, ":five:", false), 5},
+                { DiscordEmoji.FromName(Program.Client, ":six:", false), 6},
+                { DiscordEmoji.FromName(Program.Client, ":seven:", false), 7},
+                { DiscordEmoji.FromName(Program.Client, ":eight:", false), 8},
+                { DiscordEmoji.FromName(Program.Client, ":nine:", false), 9},
+                { DiscordEmoji.FromName(Program.Client, ":keycap_ten:", false), 10}
+            };
+
+        public static readonly DiscordEmoji HalfScore = DiscordEmoji.FromName(Program.Client, ":up:", false);
+
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        public WatchRatingsEngine() : base()
         {
+            CurrentEngine = this;
+        }
+
+        /// <summary>
+        /// Loads an enginestate for a specific discord server
+        /// </summary>
+        /// <param name="serverID">discord serverID</param>
+        public override void Load(ulong serverID)
+        {
+            WatchRatingsEngineState state;
+            if (TryGetValue(serverID, out state))
+            {
+                serverStates.Remove(serverID);
+            }
+            state = EngineState.Load<WatchRatingsEngineState>(new WatchRatingsEngineState(serverID));
+            serverStates.Add(serverID, state);
+        }
+
+        /// <summary>
+        /// Creates a dictionary maping user IDs to ratings
+        /// </summary>
+        /// <param name="message">Discord movie/tv message object</param>
+        /// <returns></returns>
+        private async Task<Dictionary<ulong, double>> _createRatingsMap(DiscordMessage message)
+        {
+            IReadOnlyList<DiscordUser> reactions;
+
+            Dictionary<ulong, double> ratings = new Dictionary<ulong, double>();
+            foreach (DiscordReaction reaction in message.Reactions)
+            {
+                DiscordEmoji key = reaction.Emoji;
+                if (!ScoreMap.ContainsKey(key))
+                {
+                    continue; //If the reaction is not a valid rating reaction, continue
+                }
+
+                int rating;
+                ScoreMap.TryGetValue(key, out rating);
+
+                reactions = await message.GetReactionsAsync(key);
+                foreach (DiscordUser user in reactions)
+                {
+                    ratings.Add(user.Id, rating);
+                }
+                Thread.Sleep(1000);
+            }
+
+            reactions = await message.GetReactionsAsync(HalfScore);
+            foreach (DiscordUser user in reactions)
+            {
+                double rating;
+                if (ratings.TryGetValue(user.Id, out rating))
+                {
+                    ratings.Remove(user.Id);
+                    ratings.Add(user.Id, rating + 0.5);
+                }
+                else
+                {
+                    ratings.Add(user.Id, 0.5);
+                }
+            }
+
+            return ratings;
+        }
+
+        /// <summary>
+        /// Validates a watch rating message
+        /// </summary>
+        /// <param name="message"></param>
+        public static bool IsWatchRatingsChannelMessage(DiscordMessage message)
+        {
+            return _getWatchChannelID(message.Channel.Guild.Id) == (ulong)message.Channel.Id;
+        }
+
+        /// <summary>
+        /// Gets the watch channel ID for a specific server
+        /// </summary>
+        /// <param name="serverID"></param>
+        /// <returns></returns>
+        private static ulong _getWatchChannelID(ulong serverID)
+        {
+            ServerConfig config = ServerConfig.GetServerConfig(serverID);
+            return config.WatchRatingsChannelID;
+        }
+
+        /// <summary>
+        /// Generates an watch entry object based on a discord message
+        /// </summary>
+        /// <param name="message"></param>
+        /// <returns></returns>
+        public async Task<WatchEntry> GenerateEntry(DiscordMessage message)
+        {
+            Dictionary<ulong, double> ratings = await _createRatingsMap(message);
             List<string> keys;
             string name;
             int? year;
@@ -22,6 +144,7 @@ namespace DiscordBot.Engines
             {
                 MessageID = message.Id,
                 EntryTime = message.Timestamp,
+                Ratings = ratings,
                 Keys = keys,
                 Name = name,
                 Year = year,
@@ -29,14 +152,74 @@ namespace DiscordBot.Engines
             };
 
             return entry;
+        }
+
+        /// <summary>
+        /// Creates a new watch entry or updates an existing one given a discord message object. 
+        /// The server and channel IDs are pulled from the object
+        /// </summary>
+        /// <param name="message"></param>
+        public async Task<bool> UpdateWatchEntry(DiscordMessage message)
+        {
+            ValidateServerMessage(message); // Throws exception is message doesn't have a server ID
+            if (!IsWatchRatingsChannelMessage(message))
+            {
+                return false;
+            }
+
+            return await UpdateWatchEntry((ulong)message.Channel.GuildId, message.Id);
 
         }
 
+        /// <summary>
+        /// Creates a new watch entry or updates an existing one given a discord message object. 
+        /// The server and channel IDs are pulled from the object
+        /// </summary>
+        /// <param name="serverID"></param>
+        /// <param name="messageID"></param>
+        public async Task<bool> UpdateWatchEntry(ulong serverID, ulong messageID)
+        {
+            
+            ulong watchChannelID = _getWatchChannelID(serverID);
+
+            WatchRatingsEngineState state;
+            TryGetValue(serverID, out state);
+
+            // Pull discord message so we don't use cached data
+            DiscordChannel channel = await Program.Client.GetChannelAsync(watchChannelID);
+            DiscordMessage message = await channel.GetMessageAsync(messageID, true);
+            Console.WriteLine($"Updating {message.Content} [{message.Id}]");
+
+            WatchEntry updatedEntry = await GenerateEntry(message);
+
+            state.UpdateEntry(updatedEntry);
+            return true;
+        }
+
+        /// <summary>
+        /// Updates Watch Entries based on a list of message IDs
+        /// </summary>
+        /// <param name="messages"></param>
+        /// <param name="serverID"></param>
+        public async Task<bool> UpdateWatchEntries(List<ulong> messages, ulong serverID)
+        {
+            foreach(ulong messageID in messages)
+            {
+                await UpdateWatchEntry(serverID, messageID);
+                Thread.Sleep(1000);
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// Checks if a name is a valid tv name based on the ending
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
         public bool IsValidTVName(string name)
         {
-            return GetTVYear(name) != null || name.Substring(name.Length - 4, name.Length) == "(TV)";
+            return GetTVYear(name) != null || name.EndsWith("(TV)");
         }
-
 
         /// <summary>
         /// With a title of the form "name (year)", gets the year
@@ -49,19 +232,28 @@ namespace DiscordBot.Engines
             {
                 return null;
             }
-            if (name.Split('(').Length == 0)
+
+            string[] tvSplit = name.Split(new string[] { "(TV " }, StringSplitOptions.None);
+            if (tvSplit.Length == 1)
             {
                 return null;
             }
 
-            string _year = name.Split('(')[name.Split('(').Length - 1];
-            if (_year[_year.Length - 1] == ')' && _year.Length == 8)
+           
+
+            string _year = tvSplit[tvSplit.Length - 1];
+            if (_year[_year.Length - 1] == ')' && _year.Length == 5)
             {
-                return Int32.Parse(_year.Substring(_year.Length - 5, _year.Length - 2));
+                return Int32.Parse(_year.Substring(0, _year.Length - 1));
             }
             return null;
         }
 
+        /// <summary>
+        /// Gets the year from a string of the form "moviename (xxxx)"
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
         public int? GetMovieYear(string name)
         {
             if (name == "")
@@ -76,14 +268,19 @@ namespace DiscordBot.Engines
             string _year = name.Split('(')[name.Split('(').Length - 1];
             if (_year[_year.Length - 1] == ')' && _year.Length == 5)
             {
-                return Int32.Parse(_year.Substring(_year.Length - 5, _year.Length - 2));
+                return Int32.Parse(_year.Substring(_year.Length - 5, _year.Length - 1));
             }
             return null;
         }
 
+        /// <summary>
+        /// Gets the keys associated with a movie/tv string
+        /// </summary>
+        /// <param name="messageContent">movie/tv string</param>
+        /// <returns></returns>
         public List<string> GetKeys(string messageContent)
         {
-            if (messageContent == "")
+            if (string.IsNullOrEmpty(messageContent))
             {
                 return null;
             }
@@ -93,7 +290,12 @@ namespace DiscordBot.Engines
             if (messageContent[0] == '[')
             {
                 string x = messageContent.Split(']')[0];
-                x = x.Split('[')[0];
+                string[] split = x.Split('[');
+                if (x.Length < 2)
+                {
+                    return keys;
+                }
+                x = split[1];
 
                 keys = x.Split(',').ToList();
 
@@ -102,6 +304,11 @@ namespace DiscordBot.Engines
 
         }
 
+        /// <summary>
+        /// Gets the movie/tv name from a movie string
+        /// </summary>
+        /// <param name="messageContent"></param>
+        /// <returns></returns>
         public string GetName(string messageContent)
         {
             string name = messageContent;
@@ -114,9 +321,17 @@ namespace DiscordBot.Engines
                 name = name.Split('(')[name.Split('(').Length - 2];
             }
 
-            return name;
+            return name.Trim();
         }
 
+        /// <summary>
+        /// Populates values given a movie/tv string
+        /// </summary>
+        /// <param name="messageContent">movie/tv string</param>
+        /// <param name="Keys">keys associated with the string</param>
+        /// <param name="name">name of the movie or tv show</param>
+        /// <param name="year">year of the movie or tv show</param>
+        /// <param name="IsTV">true if a tv show, false otherwise</param>
         public void GetInformation(string messageContent, out List<string> Keys, out string name, out int? year, out bool IsTV)
         {
             Keys = GetKeys(messageContent);
@@ -135,21 +350,217 @@ namespace DiscordBot.Engines
 
     }
 
+    public class WatchRatingsEngineState : EngineState
+    {
+
+        public Dictionary<ulong, WatchEntry> WatchEntries = new Dictionary<ulong, WatchEntry>();
+
+        public Dictionary<ulong, WatchEntry> MergedEntries = new Dictionary<ulong, WatchEntry>();
+
+        public bool HasValidationWarnings;
+
+        [JsonIgnore]
+        public override string StateFile_ { get; } = "WatchRatings.JSON";
+
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="serverID"></param>
+        public WatchRatingsEngineState(ulong serverID) : base(serverID)
+        {
+            HasValidationWarnings = false;
+        }
+
+        /// <summary>
+        /// Updates an entry in the watch entries state
+        /// </summary>
+        /// <param name="entry"></param>
+        public void UpdateEntry(WatchEntry entry)
+        {
+            if (!WatchEntries.ContainsKey(entry.MessageID))
+            {
+                WatchEntries.Add(entry.MessageID, entry);
+            }
+            else
+            {
+                WatchEntry oldEntry;
+                WatchEntries.TryGetValue(entry.MessageID, out oldEntry);
+                WatchEntries.Remove(oldEntry.MessageID);
+                WatchEntries.Add(entry.MessageID, entry);
+
+            }
+
+            if(MergedEntries.Count == 0 || WatchEntries.Values.Select(x => x.Name == entry.Name).Count() > 1)
+            {
+                GenerateMergedStates();
+            }
+            SaveState();  
+        }
+
+        /// <summary>
+        /// Generates the Merged Entries Dictionary
+        /// </summary>
+        public void GenerateMergedStates()
+        {
+            MergedEntries = new Dictionary<ulong, WatchEntry>();
+            List<WatchEntry> entries = WatchEntries.Values.ToList().OrderBy(x => x.Name, StringComparer.InvariantCultureIgnoreCase).ToList();
+
+            for(int i = 0; i < entries.Count; i++)
+            {
+                WatchEntry baseEntry = entries[i];
+                List<WatchEntry> mergeThese = new List<WatchEntry>();
+                for(int j = i+1; j < entries.Count; j++)
+                {
+                    WatchEntry checkMerge = entries[j];
+                    if (!WatchEntry.ShouldMerge(baseEntry, checkMerge))
+                    {
+                        i = j - 1;
+                        break;
+                    }
+                    mergeThese.Add(checkMerge);
+                }
+
+                if(mergeThese.Count == 0)
+                {
+                    MergedEntries.Add(baseEntry.MessageID, baseEntry);
+                }
+                else
+                {
+                    mergeThese.Add(baseEntry);
+                    WatchEntry mergedEntry = WatchEntry.Merge(mergeThese);
+                    MergedEntries.Add(mergedEntry.MessageID, mergedEntry);
+                }
+            }
+
+        }
+    }
+
     public class WatchEntry
     {
         public ulong MessageID;
         public DateTimeOffset EntryTime;
         public string Name;
         public int? Year;
-        public List<WatchRating> Ratings;
+        public Dictionary<ulong, double> Ratings = new Dictionary<ulong, double>();
         public List<string> Keys;
         public bool IsTV = false;
+        public bool HasValidationWarning = false;
+        public bool IsMerged = false;
+        public List<ulong> MergedIDs = new List<ulong>();
+        public bool HasManualChanges = false;
+
+        /// <summary>
+        /// Checks if a watchentry is the same entry as another entry.
+        /// Checks if IDs are the same
+        /// </summary>
+        /// <param name="otherEntry"></param>
+        /// <returns></returns>
+        public bool Equals(WatchEntry otherEntry)
+        {
+            return MessageID == otherEntry.MessageID;
+        }
+
+        /// <summary>
+        /// Merges a 2 watch entries
+        /// </summary>
+        /// <param name="entries"></param>
+        /// <returns></returns>
+        public static WatchEntry Merge(WatchEntry originalEntry, WatchEntry newEntry)
+        {
+            if (originalEntry.Equals(newEntry)) 
+            {
+                throw new Exception("Unable to merge equal Watch Entries");
+            }
+            List<WatchEntry> entries = new List<WatchEntry>();
+
+            entries.Add(originalEntry);
+            entries.Add(newEntry);
+
+            return Merge(entries);
+        }
+
+        /// <summary>
+        /// Merges a list of Watch Entries
+        /// </summary>
+        /// <param name="entries"></param>
+        /// <returns></returns>
+        public static WatchEntry Merge(List<WatchEntry> entries)
+        {
+
+            if(entries == null || entries.Count == 0)
+            {
+                return null;
+            }
+            if(entries.Count == 1)
+            {
+                return entries.First();
+            }
+            if(entries.Count != entries.Distinct().ToList().Count)
+            {
+                throw new Exception("Duplicate entries in merge list");
+            }
+
+            entries = entries.OrderBy(x => x.EntryTime).ToList();
+
+            WatchEntry baseEntry = entries.First();
+
+            WatchEntry mergedEntry = new WatchEntry()
+            {
+                MessageID = baseEntry.MessageID,
+                EntryTime = baseEntry.EntryTime,
+                Name = baseEntry.Name,
+                Year = baseEntry.Year,
+                IsTV = baseEntry.IsTV,
+                IsMerged = true
+            };
+
+            //Merge ratings and fill in null year if it is filled in during a later entry
+            foreach(WatchEntry entry in entries)
+            {
+                if(mergedEntry.Year == null && entry.Year != null)
+                {
+                    mergedEntry.Year = entry.Year;
+                }
+
+                mergedEntry.MergedIDs.Add(entry.MessageID);
+
+                //Merge Ratings
+                foreach(ulong userID in entry.Ratings.Keys)
+                {
+                    //Only add  the oldest rating. 
+                    //The list has already been ordered, 
+                    //so we can assume the first instance is the oldest.
+                    //Once added, we don't need to mess with it.
+                    if (!mergedEntry.Ratings.ContainsKey(userID))
+                    {
+                        double rating;
+                        entry.Ratings.TryGetValue(userID, out rating);
+                        mergedEntry.Ratings.Add(userID, rating);
+                    }
+                }
+            }
+
+            return mergedEntry;
+
+        }
+
+        /// <summary>
+        /// Checks if two entries should be merges
+        /// </summary>
+        /// <param name="originalEntry"></param>
+        /// <param name="newEntry"></param>
+        /// <returns></returns>
+        public static bool ShouldMerge(WatchEntry originalEntry, WatchEntry newEntry)
+        {
+            bool DifferentIDs = originalEntry.MessageID != newEntry.MessageID;
+            bool SameTitle = originalEntry.Name == newEntry.Name;
+            bool SameYear = originalEntry.Year == newEntry.Year;
+            bool HasNullYear = (originalEntry.Year == null) || (newEntry == null);
+            bool SameType = originalEntry.IsTV == newEntry.IsTV;
+
+            return DifferentIDs && SameTitle && SameType && (HasNullYear || SameYear);
+        }
 
     }
 
-    public class WatchRating
-    {
-        public DUser User;
-        public float Rating;
-    }
 }

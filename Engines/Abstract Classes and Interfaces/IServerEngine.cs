@@ -1,9 +1,7 @@
-﻿using System;
+﻿using DSharpPlus.Entities;
+using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace DiscordBot.Engines
 {
@@ -49,17 +47,7 @@ namespace DiscordBot.Engines
         /// Loads a specific server into the serverStates dictionary
         /// </summary>
         /// <param name="serverID"></param>
-        public void Load(ulong serverID)
-        {
-            if (!serverStates.ContainsKey(serverID))
-            {
-                ConstructorInfo constructor = EngineStateType.GetConstructor(new[] { typeof(ulong) });
-                Object state = constructor.Invoke(new Object[] { serverID });
-                serverStates.Add(serverID, 
-                    EngineState.Load<EngineState>( Convert.ChangeType(state, EngineStateType))
-                    );
-            }
-        }
+        public abstract void Load(ulong serverID);
 
         public bool TryGetValue<T>(ulong serverID, out T state)
         {
@@ -77,7 +65,7 @@ namespace DiscordBot.Engines
         }
 
         /// <summary>
-        /// Saves the state of all reminder states
+        /// Saves the state of all states
         /// </summary>
         public void Save()
         {
@@ -102,6 +90,19 @@ namespace DiscordBot.Engines
                 } 
             }
             return true;
+        }
+
+        /// <summary>
+        /// Validates that a discord message has a server ID. 
+        /// Throws an exception is GuildID is null.
+        /// </summary>
+        /// <param name="message"></param>
+        public void ValidateServerMessage(DiscordMessage message)
+        {
+            if (message.Channel.GuildId == null)
+            {
+                throw new Exception("Non discord server message.");
+            }
         }
     }
 }

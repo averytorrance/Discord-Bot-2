@@ -4,9 +4,6 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Linq;
 using System;
-using RestSharp;
-using DiscordBot.Config;
-using Newtonsoft.Json;
 using DiscordBot.Engines;
 
 namespace DiscordBot.Commands
