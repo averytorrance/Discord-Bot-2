@@ -9,7 +9,7 @@ using Newtonsoft.Json.Linq;
 
 namespace DiscordBot.Engines
 {
-    class JSONEngine
+    public class JSONEngine
     {
 
         /// <summary>

@@ -1,0 +1,61 @@
+{
+  "WatchEntries": {},
+  "MergedEntries": {
+    "1": {
+      "MessageID": 1,
+      "EntryTime": "2019-12-14T20:40:22.592-05:00",
+      "Name": "Get Out",
+      "Year": 2017,
+      "Ratings": {
+        "1": 5.0,
+        "3": 8.0
+      },
+      "Keys": [
+      ],
+      "IsTV": false,
+      "HasValidationWarning": false,
+      "IsMerged": false,
+      "MergedIDs": [
+      ],
+      "HasManualChanges": false
+    },
+    "2": {
+      "MessageID": 2,
+      "EntryTime": "2020-12-14T20:40:22.592-05:00",
+      "Name": "Get In",
+      "Year": 2018,
+      "Ratings": {
+        "2": 6.0,
+        "3": 8.0
+      },
+      "Keys": [
+      ],
+      "IsTV": false,
+      "HasValidationWarning": false,
+      "IsMerged": false,
+      "MergedIDs": [
+      ],
+      "HasManualChanges": false
+    },
+    "3": {
+      "MessageID": 3,
+      "EntryTime": "2020-12-14T20:40:22.592-05:00",
+      "Name": "The Terminator",
+      "Year": 2019,
+      "Ratings": {
+        "1": 4.0,
+        "2": 8.0
+      },
+      "Keys": [
+      ],
+      "IsTV": false,
+      "HasValidationWarning": false,
+      "IsMerged": false,
+      "MergedIDs": [
+      ],
+      "HasManualChanges": false
+    }
+  },
+  "HasValidationWarnings": false,
+  "ServerID": 1
+}

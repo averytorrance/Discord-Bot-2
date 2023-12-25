@@ -356,11 +356,23 @@ namespace DiscordBot.Engines
         #endregion
 
         #region Reports
+        /// <summary>
+        /// Searches for a 
+        /// </summary>
+        /// <param name="search"></param>
+        /// <param name="serverID"></param>
+        /// <returns></returns>
         public string Search(string search, ulong serverID)
         {
             WatchRatingsEngineState state;
             TryGetValue(serverID, out state);
-            List<WatchEntry> results = state.Search(search);
+
+            WatchSearch searchCriteria = new WatchSearch()
+            {
+                SearchTerm = search
+            };
+
+            List<WatchEntry> results = state.Search(searchCriteria);
 
             string res = "";
             foreach(WatchEntry entry in results)
@@ -460,74 +472,13 @@ namespace DiscordBot.Engines
                     MergedEntries.Add(mergedEntry.MessageID, mergedEntry);
                 }
             }
-
         }
 
         /// <summary>
-        /// Searches for entries in the watch entries list
+        /// Searches for watch entries using the criteria in a watch search object
         /// </summary>
-        /// <param name="search"></param>
+        /// <param name="searchParams"></param>
         /// <returns></returns>
-        public List<WatchEntry> Search(string search)
-        {
-            search = StringUtils.ReplaceLoopHoles(search.ToLower());
-            Func<WatchEntry, bool> searchTest;
-
-            ///Use starts with if search is 3 characters or less
-            if (search.Length > 3)
-            {
-                searchTest = delegate (WatchEntry x)
-                {
-                    string entryName = StringUtils.ReplaceLoopHoles(x.Name.ToLower());
-                    return Regex.IsMatch(entryName, search);
-                };
-            }
-            else
-            {
-                searchTest = delegate (WatchEntry x)
-                {
-                    string entryName = StringUtils.ReplaceLoopHoles(x.Name.ToLower());
-                    return entryName.StartsWith(search);
-                };
-            }
-            return Search(searchTest);
-        }
-
-        /// <summary>
-        /// Gets a list of all of the ratings entered in a specific year
-        /// </summary>
-        /// <param name="WatchYear"></param>
-        /// <returns></returns>
-        public List<WatchEntry> GetWatchedInYear(int WatchYear)
-        {
-            Func<WatchEntry, bool> Year = delegate (WatchEntry x) { return x.EntryTime.Year == WatchYear; };
-            return Search(Year);
-        }
-
-        /// <summary>
-        /// Returns a list of all the ratings where a userID has a ratings
-        /// </summary>
-        /// <param name="userID"></param>
-        /// <param name="year">if non null, restrict results to a specific year</param>
-        /// <returns></returns>
-        public List<WatchEntry> GetUserRatings(ulong userID, int? year = null)
-        {
-            Func<WatchEntry, bool> UserRatings;
-            if (year != null)
-            {
-                UserRatings = delegate (WatchEntry x)
-                {
-                    return x.Ratings.ContainsKey(userID) && x.Year == year;
-                };
-            }
-            else
-            {
-                UserRatings = delegate (WatchEntry x) { return x.Ratings.ContainsKey(userID); };
-            }
-            
-            return Search(UserRatings);
-        }
-
         public List<WatchEntry> Search(WatchSearch searchParams)
         {
             return Search(searchParams.SearchFunction());
@@ -543,20 +494,6 @@ namespace DiscordBot.Engines
             return MergedEntries.Values.Select(x => x).Where(x => func(x)).ToList();
         }
 
-        #region Statistics Methods (calculated using merged entries)
-        /// <summary>
-        /// Gets statistics for a user.
-        /// </summary>
-        /// <param name="userID"></param>
-        /// <param name="year">if non null, restrict results to a specific year</param>
-        /// <returns></returns>
-        public Statistics GetUserStats(ulong userID, int? year = null)
-        {
-            List<WatchEntry> userRatings = GetUserRatings(userID, year);
-            List<double> ratings = userRatings.Select(x => x.GetUserRating(userID)).ToList();
-            return new Statistics(ratings);
-        }
-
         /// <summary>
         /// Gets a list of all the years where a movie was watched
         /// </summary>
@@ -566,33 +503,6 @@ namespace DiscordBot.Engines
             return MergedEntries.Values.ToList().Select(x => x.EntryTime.Year).Distinct().OrderBy(x => x).ToList();
         }
 
-        /// <summary>
-        /// Gets a statistics object based on a dataset of all ratings
-        /// </summary>
-        /// <returns></returns>
-        public Statistics GetsTotalStats()
-        {
-            List<double> ratings = new List<double>();
-            foreach(WatchEntry entry in MergedEntries.Values)
-            {
-                ratings.AddRange(entry.GetRatings());
-            }
-
-            return new Statistics(ratings);
-        }
-
-        /// <summary>
-        /// Gets a statistics object based on the values of all of the averages
-        /// </summary>
-        /// <returns></returns>
-        public Statistics GetTotalAverageStats()
-        {
-            List<double> averages = MergedEntries.Values.ToList().Select(x => x.GetAverage()).ToList();
-            return new Statistics(averages);
-        }
-
-
-        #endregion
     }
 
     public class WatchEntry
@@ -813,10 +723,12 @@ namespace DiscordBot.Engines
         public List<ulong> UserIDs;
         public bool? IsTV;
         public bool? HasValidationWarning;
+        public double? UserScore;
+        public Func<double, bool> Operator;
 
         public Func<WatchEntry, bool> SearchFunction()
         {
-            Func<WatchEntry, bool> func = (x) => _stringSearch(x) && _watchYear(x) && _releaseYear(x) && _hasUsers(x) && _entryType(x) && _hasWarning(x);
+            Func<WatchEntry, bool> func = (x) => _stringSearch(x) && _watchYear(x) && _releaseYear(x) && _hasUsers(x) && _entryType(x) && _hasWarning(x) && _userScore(x);
             return func;
         }
 
@@ -913,6 +825,66 @@ namespace DiscordBot.Engines
             }
             return x.HasValidationWarning == HasValidationWarning;
         }
+
+        /// <summary>
+        /// returns delegate to check for a specific average
+        /// </summary>
+        /// <returns></returns>
+        private bool _userScore(WatchEntry x)
+        {
+            if (UserIDs == null || UserIDs.Count == 0 || UserScore == null)
+            {
+                return true;
+            }
+
+            if(Operator == null)
+            {
+                Operator = EqualsFunction();
+            }
+
+            foreach (ulong userID in UserIDs)
+            {
+                double score;
+                x.Ratings.TryGetValue(userID, out score);
+                if (!Operator(score))
+                {
+                    return false;
+                }
+            };
+            return true;
+        }
+
+        public Func<double, bool> EqualsFunction()
+        {
+            return delegate (double val) { return val == UserScore; };
+        }
+
+        public Func<double, bool> NEQFunction()
+        {
+            return delegate (double val) { return val != UserScore; };
+        }
+
+        public Func<double, bool> GreaterThanFunction()
+        {
+            return delegate (double val) { return val > UserScore; };
+        }
+
+        public Func<double, bool> GreaterThanEqFunction()
+        {
+            return delegate (double val) { return val >= UserScore; };
+        }
+
+        public Func<double, bool> LessThanFunction()
+        {
+            return delegate (double val) { return val < UserScore; };
+        }
+
+        public Func<double, bool> LessThanEqFunction()
+        {
+            return delegate (double val) { return val <= UserScore; };
+        }
+
+
 
     }
 }

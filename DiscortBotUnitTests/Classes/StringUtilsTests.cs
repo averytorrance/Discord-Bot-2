@@ -4,7 +4,7 @@ using DiscordBot.Classes;
 namespace DiscordBotUnitTests
 {
     [TestClass]
-    public class StringUtilsTest
+    public class StringUtilsTests
     {
 
         #region ReplaceLoopHoles
