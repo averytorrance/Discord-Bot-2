@@ -5,7 +5,7 @@ VisualStudioVersion = 16.0.31515.178
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DiscordBotUnitTests", "DiscordBotUnitTests\DiscordBotUnitTests.csproj", "{B365FD5A-762A-4CCE-BDB6-EDB53D116FC6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DiscordBot", "DiscordBot.csproj", "{22FFA2DD-7C9E-41F9-9C26-8EEED416429E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DiscordBot", "DiscordBot\DiscordBot.csproj", "{22FFA2DD-7C9E-41F9-9C26-8EEED416429E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
