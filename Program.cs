@@ -62,6 +62,7 @@ namespace DiscordBot
             Client.MessageReactionAdded += MessageReactionAddedHandler;
             Client.MessageReactionRemoved += MessageReactionRemoveHandler;
             Client.MessageDeleted += MessageDeleteHandler;
+            Client.MessageUpdated += MessageUpdatedHandler;
 
         //6. Set up the Commands Configuration
             CommandsNextConfiguration commandsConfig = new CommandsNextConfiguration()
@@ -205,6 +206,18 @@ namespace DiscordBot
         /// <param name="e"></param>
         /// <returns></returns>
         public static async Task MessageReactionRemoveHandler(DiscordClient sender, MessageReactionRemoveEventArgs e)
+        {
+            if (WatchRatingsEngine.IsWatchRatingsChannelMessage(e.Message))
+            {
+                WatchRatingsEngine.CurrentEngine.UpdateWatchEntry(e.Message);
+            }
+        }
+
+        /// <summary>
+        /// Handler for when a message is updated
+        /// </summary>
+        /// <returns></returns>
+        public static async Task MessageUpdatedHandler(DiscordClient sender, MessageUpdateEventArgs e)
         {
             if (WatchRatingsEngine.IsWatchRatingsChannelMessage(e.Message))
             {

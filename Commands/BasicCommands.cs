@@ -32,12 +32,10 @@ namespace DiscordBot.Commands
         /// <param name="names">input parameters. handling added to use ',' as the delimeter for each item.</param>
         /// <returns></returns>
         [Command("test")]
-        public async Task test(CommandContext ctx)
+        public async Task test(CommandContext ctx, params string[] names)
         {
-            string channelId = "UCVm_MQHtSoafvlKbd8fqNCA"; // lopgger joshua
-            YoutubeAPIEngine engine = new YoutubeAPIEngine();
 
-            await ctx.Channel.SendMessageAsync(engine.GetMostRecentVideo(channelId));
+
         }
     }
 }

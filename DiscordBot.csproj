@@ -169,6 +169,8 @@
     <Compile Include="Assets\Strings.cs" />
     <Compile Include="Classes\Poll.cs" />
     <Compile Include="Classes\DiscordUser.cs" />
+    <Compile Include="Classes\Statistics.cs" />
+    <Compile Include="Classes\StringUtils.cs" />
     <Compile Include="Commands\AdminCommands\ConfigCommands.cs" />
     <Compile Include="Commands\AdminCommands\MiscAdminCommands.cs" />
     <Compile Include="Commands\BasicCommands.cs" />

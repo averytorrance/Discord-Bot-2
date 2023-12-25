@@ -8,6 +8,8 @@ using DiscordBot.UserProfile;
 using Newtonsoft.Json;
 using DiscordBot.Config;
 using System.Threading;
+using DiscordBot.Classes;
+using System.Text.RegularExpressions;
 
 namespace DiscordBot.Engines
 {
@@ -58,6 +60,8 @@ namespace DiscordBot.Engines
             state = EngineState.Load<WatchRatingsEngineState>(new WatchRatingsEngineState(serverID));
             serverStates.Add(serverID, state);
         }
+
+        #region Data Load
 
         /// <summary>
         /// Creates a dictionary maping user IDs to ratings
@@ -143,6 +147,7 @@ namespace DiscordBot.Engines
             WatchEntry entry = new WatchEntry()
             {
                 MessageID = message.Id,
+                ServerID = (ulong)message.Channel.GuildId,
                 EntryTime = message.Timestamp,
                 Ratings = ratings,
                 Keys = keys,
@@ -167,8 +172,9 @@ namespace DiscordBot.Engines
                 return false;
             }
 
-            return await UpdateWatchEntry((ulong)message.Channel.GuildId, message.Id);
-
+            bool result = await UpdateWatchEntry((ulong)message.Channel.GuildId, message.Id);
+            Console.WriteLine($"Movie Entry {message.Id} updated.");
+            return result;
         }
 
         /// <summary>
@@ -347,7 +353,30 @@ namespace DiscordBot.Engines
             }
             name = GetName(messageContent);
         }
+        #endregion
 
+        #region Reports
+        public string Search(string search, ulong serverID)
+        {
+            WatchRatingsEngineState state;
+            TryGetValue(serverID, out state);
+            List<WatchEntry> results = state.Search(search);
+
+            string res = "";
+            foreach(WatchEntry entry in results)
+            {
+                res = $"{res}{entry}\n";
+            }
+
+            if(res == "")
+            {
+                res = "No results";
+            }
+
+            return res;
+        }
+
+        #endregion
     }
 
     public class WatchRatingsEngineState : EngineState
@@ -433,11 +462,143 @@ namespace DiscordBot.Engines
             }
 
         }
+
+        /// <summary>
+        /// Searches for entries in the watch entries list
+        /// </summary>
+        /// <param name="search"></param>
+        /// <returns></returns>
+        public List<WatchEntry> Search(string search)
+        {
+            search = StringUtils.ReplaceLoopHoles(search.ToLower());
+            Func<WatchEntry, bool> searchTest;
+
+            ///Use starts with if search is 3 characters or less
+            if (search.Length > 3)
+            {
+                searchTest = delegate (WatchEntry x)
+                {
+                    string entryName = StringUtils.ReplaceLoopHoles(x.Name.ToLower());
+                    return Regex.IsMatch(entryName, search);
+                };
+            }
+            else
+            {
+                searchTest = delegate (WatchEntry x)
+                {
+                    string entryName = StringUtils.ReplaceLoopHoles(x.Name.ToLower());
+                    return entryName.StartsWith(search);
+                };
+            }
+            return Search(searchTest);
+        }
+
+        /// <summary>
+        /// Gets a list of all of the ratings entered in a specific year
+        /// </summary>
+        /// <param name="WatchYear"></param>
+        /// <returns></returns>
+        public List<WatchEntry> GetWatchedInYear(int WatchYear)
+        {
+            Func<WatchEntry, bool> Year = delegate (WatchEntry x) { return x.EntryTime.Year == WatchYear; };
+            return Search(Year);
+        }
+
+        /// <summary>
+        /// Returns a list of all the ratings where a userID has a ratings
+        /// </summary>
+        /// <param name="userID"></param>
+        /// <param name="year">if non null, restrict results to a specific year</param>
+        /// <returns></returns>
+        public List<WatchEntry> GetUserRatings(ulong userID, int? year = null)
+        {
+            Func<WatchEntry, bool> UserRatings;
+            if (year != null)
+            {
+                UserRatings = delegate (WatchEntry x)
+                {
+                    return x.Ratings.ContainsKey(userID) && x.Year == year;
+                };
+            }
+            else
+            {
+                UserRatings = delegate (WatchEntry x) { return x.Ratings.ContainsKey(userID); };
+            }
+            
+            return Search(UserRatings);
+        }
+
+        public List<WatchEntry> Search(WatchSearch searchParams)
+        {
+            return Search(searchParams.SearchFunction());
+        }
+
+        /// <summary>
+        /// Searches for watch entries where a specific criteria is true
+        /// </summary>
+        /// <param name="func">delegate function where the input parameter is a watch entry and the output is a boolean if the watch entry should be included</param>
+        /// <returns></returns>
+        public List<WatchEntry> Search(Func<WatchEntry, bool> func)
+        {
+            return MergedEntries.Values.Select(x => x).Where(x => func(x)).ToList();
+        }
+
+        #region Statistics Methods (calculated using merged entries)
+        /// <summary>
+        /// Gets statistics for a user.
+        /// </summary>
+        /// <param name="userID"></param>
+        /// <param name="year">if non null, restrict results to a specific year</param>
+        /// <returns></returns>
+        public Statistics GetUserStats(ulong userID, int? year = null)
+        {
+            List<WatchEntry> userRatings = GetUserRatings(userID, year);
+            List<double> ratings = userRatings.Select(x => x.GetUserRating(userID)).ToList();
+            return new Statistics(ratings);
+        }
+
+        /// <summary>
+        /// Gets a list of all the years where a movie was watched
+        /// </summary>
+        /// <returns></returns>
+        public List<int> GetAllYears()
+        {
+            return MergedEntries.Values.ToList().Select(x => x.EntryTime.Year).Distinct().OrderBy(x => x).ToList();
+        }
+
+        /// <summary>
+        /// Gets a statistics object based on a dataset of all ratings
+        /// </summary>
+        /// <returns></returns>
+        public Statistics GetsTotalStats()
+        {
+            List<double> ratings = new List<double>();
+            foreach(WatchEntry entry in MergedEntries.Values)
+            {
+                ratings.AddRange(entry.GetRatings());
+            }
+
+            return new Statistics(ratings);
+        }
+
+        /// <summary>
+        /// Gets a statistics object based on the values of all of the averages
+        /// </summary>
+        /// <returns></returns>
+        public Statistics GetTotalAverageStats()
+        {
+            List<double> averages = MergedEntries.Values.ToList().Select(x => x.GetAverage()).ToList();
+            return new Statistics(averages);
+        }
+
+
+        #endregion
     }
 
     public class WatchEntry
     {
         public ulong MessageID;
+        public ulong ServerID;
         public DateTimeOffset EntryTime;
         public string Name;
         public int? Year;
@@ -460,6 +621,65 @@ namespace DiscordBot.Engines
             return MessageID == otherEntry.MessageID;
         }
 
+        /// <summary>
+        /// ToString
+        /// </summary>
+        /// <returns></returns>
+        public override string ToString()
+        {
+            string title;
+            if (IsTV)
+            {
+                title = $"**TV**: {Name}";
+            }
+            else
+            {
+                title = $"**Movie**: {Name}";
+            }
+
+            if(Year != null)
+            {
+                title = $"{title} ({Year})";
+            }
+
+            Statistics statistics = GetStats();
+
+            LocalUserEngine userEngine = new LocalUserEngine();
+            string scores = "";
+            foreach (ulong userID in Ratings.Keys)
+            {
+                //TODO: Fix hardcoded value
+                LocalUser user = userEngine.GetUser(userID, 427296058310393856);
+                double rating = GetUserRating(userID);
+                if(user == null)
+                {
+                    scores = $"{scores}Username: N/A  {rating}\n";
+                }
+                else
+                {
+                    scores = $"{scores}Username: {user.UserName}   {rating}\n";
+                }
+            }
+
+            return $"{title}\n{scores}Average: {statistics.Mean}\n";
+        }
+
+        /// <summary>
+        /// Gets a user rating for the ratings dictionary, given their UserID
+        /// </summary>
+        /// <param name="userID"></param>
+        /// <returns></returns>
+        public double GetUserRating(ulong userID)
+        {
+            double rating;
+            if (!Ratings.TryGetValue(userID, out rating))
+            {
+                throw new Exception("No user in Ratings Dictionary");
+            }
+            return rating;
+        }
+
+        #region Merge
         /// <summary>
         /// Merges a 2 watch entries
         /// </summary>
@@ -560,7 +780,139 @@ namespace DiscordBot.Engines
 
             return DifferentIDs && SameTitle && SameType && (HasNullYear || SameYear);
         }
+        #endregion
 
+        #region Statistic Methods
+
+        public double GetAverage()
+        {
+            return GetStats().Mean;
+        }
+
+        public Statistics GetStats()
+        {
+            return new Statistics(GetRatings());
+        }
+
+        /// <summary>
+        /// Gets the list of ratings
+        /// </summary>
+        /// <returns></returns>
+        public List<double> GetRatings()
+        {
+            return Ratings.Values.OrderBy(x => x).ToList();
+        }
+        #endregion
     }
 
+    public class WatchSearch
+    {
+        public string SearchTerm;
+        public int? WatchYear;
+        public int? ReleaseYear;
+        public List<ulong> UserIDs;
+        public bool? IsTV;
+        public bool? HasValidationWarning;
+
+        public Func<WatchEntry, bool> SearchFunction()
+        {
+            Func<WatchEntry, bool> func = (x) => _stringSearch(x) && _watchYear(x) && _releaseYear(x) && _hasUsers(x) && _entryType(x) && _hasWarning(x);
+            return func;
+        }
+
+
+        /// <summary>
+        /// returns delegate to check if a watchentry has a specifc entry year
+        /// </summary>
+        /// <returns></returns>
+        private bool _stringSearch(WatchEntry x)
+        {
+            if (string.IsNullOrWhiteSpace(SearchTerm))
+            {
+                return true;
+            }
+            string search = StringUtils.ReplaceLoopHoles(SearchTerm.ToLower());
+
+            string entryName = StringUtils.ReplaceLoopHoles(x.Name.ToLower());
+            ///Use starts with if search is 3 characters or less
+            if (search.Length > 3)
+            {                
+                return Regex.IsMatch(entryName, search);
+            }
+            return entryName.StartsWith(search);
+        }
+
+        /// <summary>
+        /// returns delegate to check if a watchentry has a specifc entry year
+        /// </summary>
+        /// <returns></returns>
+        private bool _watchYear(WatchEntry x)
+        {
+            if(WatchYear == null)
+            {
+                return true;
+            }
+            return x.EntryTime.Year == (int)WatchYear;
+        }
+
+        /// <summary>
+        /// returns delegate to check if a watchentry has a specific year
+        /// </summary>
+        /// <returns></returns>
+        private bool _releaseYear(WatchEntry x)
+        {
+            if(ReleaseYear == null)
+            {
+                return true;
+            }
+            return x.Year == (int)ReleaseYear;
+        }
+
+        /// <summary>
+        /// returns delegate to check if a watchentry was rated by a list of users
+        /// </summary>
+        /// <returns></returns>
+        private bool _hasUsers(WatchEntry x)
+        {
+            if(UserIDs == null || UserIDs.Count == 0)
+            {
+                return true;
+            }
+            foreach(ulong userID in UserIDs)
+            {
+                if (!x.Ratings.ContainsKey(userID))
+                {
+                    return false;
+                }
+            };
+            return true;
+        }
+
+        /// <summary>
+        /// returns delegate to check if IsTV
+        /// </summary>
+        /// <returns></returns>
+        private bool _entryType(WatchEntry x)
+        {
+            if(IsTV == null)
+            {
+                return true;
+            }
+            return x.IsTV == IsTV;
+        }
+
+        /// <summary>
+        /// returns delegate to check for validation warnings
+        /// </summary>
+        /// <returns></returns>
+        private bool _hasWarning(WatchEntry x)
+        {
+            if(HasValidationWarning == null)
+            {
+                return true;
+            }
+            return x.HasValidationWarning == HasValidationWarning;
+        }
+
+    }
 }
