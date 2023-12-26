@@ -29,7 +29,5 @@ namespace DiscordBot.Commands.SlashCommands
 
             await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder(user.GenerateProfileMessage()));
         }
-
-
     }
 }

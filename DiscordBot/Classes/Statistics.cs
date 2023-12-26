@@ -18,8 +18,15 @@ namespace DiscordBot.Classes
 
         public int Count { get; private set; }
 
+        public bool NullData { get; private set; } = false;
+
         public Statistics(List<double> values)
         {
+            if(values == null || values.Count == 0)
+            {
+                NullData = true;
+                return;
+            }
             Sum = AddAll(values);
             Mean = Average(values);
             StandardDeviation = STD(values);
@@ -34,6 +41,11 @@ namespace DiscordBot.Classes
         /// <returns></returns>
         public override string ToString()
         {
+            if (NullData) 
+            {
+                return "Empty Data set. Unable to calculate statistics.";
+            }
+
             return $"Average: {Mean}\nStandard Deviation: {StandardDeviation}\nMinimum: {Minimum}\nMaximum: {Maximum}";
         }
 
