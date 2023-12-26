@@ -92,22 +92,17 @@ namespace DiscordBot.Commands
             }
         }
 
-
         /// <summary>
         /// Searchs for watch ratings by name
         /// </summary>
         /// <param name="ctx">command context</param>
         /// <param name="search">search term</param>
         /// <returns></returns>
-        [Command("Search")]
-        public async Task GetIDS(CommandContext ctx, params string[] search)
+        [Command("Generate")]
+        [RequireUserPermissions(DSharpPlus.Permissions.Administrator)]
+        public async Task Generate(CommandContext ctx)
         {
-            ulong serverID = ctx.Guild.Id;
-            string searchTerm = string.Join(" ", search);
-            IEngineState state;
-            string results = WatchRatingsEngine.CurrentEngine.Search(searchTerm, serverID);
-
-            await ctx.Channel.SendMessageAsync(results);
+            WatchRatingsEngine.CurrentEngine.GenerateNewState((ulong)ctx.Channel.GuildId, ctx.Message.Id);
         }
 
     }

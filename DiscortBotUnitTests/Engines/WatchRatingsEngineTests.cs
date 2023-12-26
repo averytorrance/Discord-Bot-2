@@ -219,7 +219,6 @@ namespace DiscordBotUnitTests
         #endregion
 
         #endregion
-
         /// <summary>
         /// Loads test data. 
         /// </summary>

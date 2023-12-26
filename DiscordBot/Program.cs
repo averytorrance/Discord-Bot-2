@@ -85,8 +85,8 @@ namespace DiscordBot
             Commands.RegisterCommands<WatchCommands>();
 
             slashCommands.RegisterCommands<BasicSlashCommands>();
-            slashCommands.RegisterCommands<ReminderCommands>(427296058310393856);
-            slashCommands.RegisterCommands<ReminderCommands>(436420385857077288);
+            slashCommands.RegisterCommands<ReminderCommands>();
+            slashCommands.RegisterCommands<WatchSlashCommands>(427296058310393856);
             slashCommands.RegisterCommands<ProfileCommands>();
 
             //7.1 Command Error Handler
@@ -111,9 +111,10 @@ namespace DiscordBot
         /// </summary>
         private static void _InitalizeEngines()
         {
+            //TODO: Turn on Watch Plan Engine. Fix issues with deleted messages
             new ReminderEngine();
             new WatchRatingsEngine();
-            new WatchPlanEngine();
+            //new WatchPlanEngine();
         }
 
         /// <summary>
@@ -128,7 +129,7 @@ namespace DiscordBot
             ReminderEngine.CurrentEngine.Load(e.Guild.Id);
             ReminderEngine.CurrentEngine.SendStaleReminders();
             WatchRatingsEngine.CurrentEngine.Load(e.Guild.Id);
-            WatchPlanEngine.CurrentEngine.Load(e.Guild.Id);
+            //WatchPlanEngine.CurrentEngine.Load(e.Guild.Id);
         }
 
         /// <summary>
@@ -163,10 +164,10 @@ namespace DiscordBot
                 user.AddToDebt();
                 userEngine.UpdateUser(user);
             }
-            if (WatchPlanEngine.IsWatchPlanChannelMessage(e.Message))
+            /*if (WatchPlanEngine.IsWatchPlanChannelMessage(e.Message))
             {
                 WatchPlanEngine.CurrentEngine.AddWatchEntry(e.Message);
-            }
+            }*/
 
         }
 
@@ -178,10 +179,10 @@ namespace DiscordBot
         /// <returns></returns>
         private static async Task MessageDeleteHandler(DiscordClient sender, MessageDeleteEventArgs e)
         {
-            if (WatchPlanEngine.IsWatchPlanChannelMessage(e.Message))
+            /*if (WatchPlanEngine.IsWatchPlanChannelMessage(e.Message))
             {
                 WatchPlanEngine.CurrentEngine.DeleteWatchEntry(e.Message);
-            }
+            }*/
         }
 
         /// <summary>

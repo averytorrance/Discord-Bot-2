@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using DSharpPlus.Entities;
 using DiscordBot.UserProfile;
@@ -44,6 +43,63 @@ namespace DiscordBot.Engines
         public WatchRatingsEngine() : base()
         {
             CurrentEngine = this;
+        }
+
+        /// <summary>
+        /// Generates a new Watch Ratings state using all of the messages before the 
+        /// message with latestMessageID. 
+        /// </summary>
+        /// <param name="serverID"></param>
+        /// <param name="latestMessageID"></param>
+        public async void GenerateNewState(ulong serverID, ulong latestMessageID)
+        {
+            if (serverStates.ContainsKey(serverID))
+            {
+                serverStates.Remove(serverID);
+            }
+            serverStates.Add(serverID, new WatchRatingsEngineState(serverID));
+
+            ulong WatchChannelID = _getWatchChannelID(serverID);
+            DiscordChannel watchChannel = await Program.Client.GetChannelAsync(WatchChannelID);
+
+            List<DiscordMessage> messages = await _getAllMessages(watchChannel, latestMessageID);
+
+            await UpdateWatchEntries(messages.Select(x => x.Id).ToList(), serverID); 
+        }
+
+        /// <summary>
+        /// Gets  a list of all of the messages before a specific message
+        /// </summary>
+        /// <param name="channel"></param>
+        /// <param name="latestMessageID"></param>
+        /// <returns></returns>
+        private async Task<List<DiscordMessage>> _getAllMessages(DiscordChannel channel, ulong latestMessageID)
+        {
+            List<DiscordMessage> messages = new List<DiscordMessage>();
+            if (latestMessageID == null)
+            {
+                return messages;
+            }
+
+
+            IReadOnlyList<DiscordMessage> watchMessages = await channel.GetMessagesBeforeAsync(latestMessageID);
+
+            if(watchMessages == null || watchMessages.Count == 0)
+            {
+                return messages;
+            }
+
+            messages.AddRange(watchMessages);
+
+            ulong lastMessageID = messages.Last().Id;
+            if(lastMessageID == null)
+            {
+                return messages;
+            }
+
+            List<DiscordMessage> addThese = await _getAllMessages(channel, lastMessageID);
+            messages.AddRange(addThese);
+            return messages;
         }
 
         /// <summary>
@@ -362,17 +418,12 @@ namespace DiscordBot.Engines
         /// <param name="search"></param>
         /// <param name="serverID"></param>
         /// <returns></returns>
-        public string Search(string search, ulong serverID)
+        public string Search(WatchSearch search, ulong serverID)
         {
             WatchRatingsEngineState state;
             TryGetValue(serverID, out state);
 
-            WatchSearch searchCriteria = new WatchSearch()
-            {
-                SearchTerm = search
-            };
-
-            List<WatchEntry> results = state.Search(searchCriteria);
+            List<WatchEntry> results = state.Search(search);
 
             string res = "";
             foreach(WatchEntry entry in results)
@@ -394,7 +445,11 @@ namespace DiscordBot.Engines
     public class WatchRatingsEngineState : EngineState
     {
 
+        public List<ulong> Nodes = new List<ulong>();
+
         public Dictionary<ulong, WatchEntry> WatchEntries = new Dictionary<ulong, WatchEntry>();
+
+        public List<WatchEntry> ArchivedEntries = new List<WatchEntry>();
 
         public Dictionary<ulong, WatchEntry> MergedEntries = new Dictionary<ulong, WatchEntry>();
 
@@ -726,12 +781,15 @@ namespace DiscordBot.Engines
         public double? UserScore;
         public Func<double, bool> Operator;
 
+        /// <summary>
+        /// Generates the search function associated with the values in this object
+        /// </summary>
+        /// <returns></returns>
         public Func<WatchEntry, bool> SearchFunction()
         {
             Func<WatchEntry, bool> func = (x) => _stringSearch(x) && _watchYear(x) && _releaseYear(x) && _hasUsers(x) && _entryType(x) && _hasWarning(x) && _userScore(x);
             return func;
         }
-
 
         /// <summary>
         /// returns delegate to check if a watchentry has a specifc entry year
@@ -854,31 +912,55 @@ namespace DiscordBot.Engines
             return true;
         }
 
+        /// <summary>
+        /// Equals function. Value for Opteration field
+        /// </summary>
+        /// <returns></returns>
         public Func<double, bool> EqualsFunction()
         {
             return delegate (double val) { return val == UserScore; };
         }
 
+        /// <summary>
+        /// Not Equals function. Value for Opteration field
+        /// </summary>
+        /// <returns></returns>
         public Func<double, bool> NEQFunction()
         {
             return delegate (double val) { return val != UserScore; };
         }
 
+        /// <summary>
+        /// Greater than function. Value for Opteration field
+        /// </summary>
+        /// <returns></returns>
         public Func<double, bool> GreaterThanFunction()
         {
             return delegate (double val) { return val > UserScore; };
         }
 
+        /// <summary>
+        /// Greater than or equal to function. Value for Opteration field
+        /// </summary>
+        /// <returns></returns>
         public Func<double, bool> GreaterThanEqFunction()
         {
             return delegate (double val) { return val >= UserScore; };
         }
 
+        /// <summary>
+        /// Less than function. Value for Opteration field
+        /// </summary>
+        /// <returns></returns>
         public Func<double, bool> LessThanFunction()
         {
             return delegate (double val) { return val < UserScore; };
         }
 
+        /// <summary>
+        /// Less than or equal to function. Value for Opteration field
+        /// </summary>
+        /// <returns></returns>
         public Func<double, bool> LessThanEqFunction()
         {
             return delegate (double val) { return val <= UserScore; };
