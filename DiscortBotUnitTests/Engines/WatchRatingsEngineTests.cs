@@ -2,6 +2,7 @@
 using DiscordBot.Engines;
 using System.Collections.Generic;
 using System.Linq;
+using DiscordBot.WatchRatings;
 
 namespace DiscordBotUnitTests
 {
@@ -210,6 +211,19 @@ namespace DiscordBotUnitTests
                 UserScore = search
             };
             watchSearch.Operator = watchSearch.LessThanEqFunction();
+
+            List<WatchEntry> results = data.Search(watchSearch);
+
+            Assert.IsTrue(results.SequenceEqual(watchEntries));
+        }
+
+        [TestMethod]
+        public void Search_UserScore_NullSearch()
+        {
+            WatchRatingsEngineState data = LoadTestData();
+            List<WatchEntry> watchEntries = data.MergedEntries.Values.ToList().OrderBy(x => x.MessageID).ToList();
+
+            WatchSearch watchSearch = new WatchSearch();
 
             List<WatchEntry> results = data.Search(watchSearch);
 

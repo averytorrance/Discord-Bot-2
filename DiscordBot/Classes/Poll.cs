@@ -85,7 +85,6 @@ namespace DiscordBot.Classes
         {
             string resultsString = "";
             int total = 0;
-            int count;
             PollOption option;
 
             foreach (DiscordEmoji emoji in OptionMap.Keys)
@@ -170,7 +169,7 @@ namespace DiscordBot.Classes
         /// String representation of this object
         /// </summary>
         /// <returns></returns>
-        public string ToString()
+        public override string ToString()
         {
             return $"{Text} : {Count}";
         }

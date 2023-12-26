@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using DiscordBot.Engines;
 using DiscordBot.Assets;
+using DiscordBot.WatchRatings;
 
 namespace DiscordBot.Commands.SlashCommands
 {
@@ -25,10 +26,12 @@ namespace DiscordBot.Commands.SlashCommands
                                                         [Option("UserScore", "User score search")] double userScore = -1,
                                                         [Option("Operator", "enum option")] Operator operation = Operator.Equals)
         {
-            WatchSearch search = new WatchSearch()
+            WatchSearch search = new WatchSearch(){  };
+
+            if(searchTerm != "")
             {
-                SearchTerm = searchTerm,
-            };
+                search.SearchTerm = searchTerm;
+            }
 
             string error = "Unable to search with current parameters.";
             string description = "";
@@ -108,9 +111,21 @@ namespace DiscordBot.Commands.SlashCommands
             }
             search.IsTV = restrictTV;
 
-            string result = WatchRatingsEngine.CurrentEngine.Search(search, (ulong)ctx.Channel.GuildId);
+            string result = "";
+            if (!search.IsNullSearch())
+            {
+                result = WatchRatingsEngine.CurrentEngine.Search(search, (ulong)ctx.Channel.GuildId);
+            }
+
+
+            
 
             DiscordInteractionResponseBuilder response = new DiscordInteractionResponseBuilder();
+
+            if(result.Length > 2000)
+            {
+                result = "Too many results. This will be handled in the future.";
+            }
 
             response.WithContent(result);
 

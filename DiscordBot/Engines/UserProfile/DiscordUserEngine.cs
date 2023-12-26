@@ -8,8 +8,9 @@ using DSharpPlus;
 using DiscordBot.Engines;
 using System.Linq;
 using System;
+using DiscordBot.UserProfile;
 
-namespace DiscordBot.UserProfile
+namespace DiscordBot.Engines
 {
     public class LocalUserEngine
     {
