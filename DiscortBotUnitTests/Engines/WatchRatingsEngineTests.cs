@@ -89,6 +89,63 @@ namespace DiscordBotUnitTests
 
             Assert.IsTrue(results.SequenceEqual(watchEntries));
         }
+
+        [TestMethod]
+        public void Search_Name_AccentCharacterInSearch()
+        {
+            string search = "Tèrm";
+
+            WatchRatingsEngineState data = LoadTestData();
+            List<WatchEntry> watchEntries = data.MergedEntries.Values.ToList().OrderBy(x => x.MessageID).ToList();
+            watchEntries = watchEntries.Where(x => x.Name == "The Terminator").ToList();
+
+            WatchSearch watchSearch = new WatchSearch()
+            {
+                SearchTerm = search
+            };
+
+            List<WatchEntry> results = data.Search(watchSearch);
+
+            Assert.IsTrue(results.SequenceEqual(watchEntries));
+        }
+
+        [TestMethod]
+        public void Search_Name_AccentCharacterInName()
+        {
+            string search = "Léon";
+
+            WatchRatingsEngineState data = LoadTestData();
+            List<WatchEntry> watchEntries = data.MergedEntries.Values.ToList().OrderBy(x => x.MessageID).ToList();
+            watchEntries = watchEntries.Where(x => x.Name == "Léon: The Professional").ToList();
+
+            WatchSearch watchSearch = new WatchSearch()
+            {
+                SearchTerm = search
+            };
+
+            List<WatchEntry> results = data.Search(watchSearch);
+
+            Assert.IsTrue(results.SequenceEqual(watchEntries));
+        }
+
+        [TestMethod]
+        public void Search_Name_SpecialCharacter()
+        {
+            string search = "Leon: The";
+
+            WatchRatingsEngineState data = LoadTestData();
+            List<WatchEntry> watchEntries = data.MergedEntries.Values.ToList().OrderBy(x => x.MessageID).ToList();
+            watchEntries = watchEntries.Where(x => x.Name == "Léon: The Professional").ToList();
+
+            WatchSearch watchSearch = new WatchSearch()
+            {
+                SearchTerm = search
+            };
+
+            List<WatchEntry> results = data.Search(watchSearch);
+
+            Assert.IsTrue(results.SequenceEqual(watchEntries));
+        }
         #endregion
 
         #region Search Year

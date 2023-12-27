@@ -59,8 +59,12 @@ namespace DiscordBot.WatchRatings
                 return true;
             }
             string search = StringUtils.ReplaceLoopHoles(SearchTerm.ToLower());
+            search = StringUtils.StripSpecialCharacters(search);
+
 
             string entryName = StringUtils.ReplaceLoopHoles(x.Name.ToLower());
+            entryName = StringUtils.StripSpecialCharacters(entryName);
+
             ///Use starts with if search is 3 characters or less
             if (search.Length > 3)
             {
