@@ -155,6 +155,11 @@ namespace DiscordBot.Engines
                 double rating;
                 if (ratings.TryGetValue(user.Id, out rating))
                 {
+                    if(rating == 10)
+                    {
+                        continue;
+                    }
+
                     ratings.Remove(user.Id);
                     ratings.Add(user.Id, rating + 0.5);
                 }
