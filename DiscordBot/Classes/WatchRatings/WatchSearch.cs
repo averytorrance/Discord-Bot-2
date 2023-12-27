@@ -27,6 +27,19 @@ namespace DiscordBot.WatchRatings
         }
 
         /// <summary>
+        /// Adds a user to the UserIDs list
+        /// </summary>
+        /// <param name="userID"></param>
+        public void AddUser(ulong userID)
+        {
+            if(UserIDs == null)
+            {
+                UserIDs = new List<ulong>();
+            }
+            UserIDs.Add(userID);
+        }
+
+        /// <summary>
         /// Checks if a search is a null search
         /// </summary>
         /// <returns></returns>

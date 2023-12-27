@@ -50,6 +50,20 @@ namespace DiscordBot.Classes
         }
 
         /// <summary>
+        /// To String
+        /// </summary>
+        /// <returns></returns>
+        public string BasicString()
+        {
+            if (NullData)
+            {
+                return "Empty Data set. Unable to calculate statistics.";
+            }
+
+            return $"Average: {Mean}\nStandard Deviation: {StandardDeviation}";
+        }
+
+        /// <summary>
         /// Takes the Sum
         /// </summary>
         /// <returns></returns>
@@ -74,7 +88,7 @@ namespace DiscordBot.Classes
         /// <returns></returns>
         public static double Max(List<double> values)
         {
-            return values.LastOrDefault();
+            return values.Max();
         }
 
         /// <summary>
@@ -83,7 +97,7 @@ namespace DiscordBot.Classes
         /// <returns></returns>
         public static double Min(List<double> values)
         {
-            return values.Average();
+            return values.Min();
         }
 
         /// <summary>

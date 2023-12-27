@@ -7,6 +7,8 @@ using System.Threading.Tasks;
 using DiscordBot.Engines;
 using DiscordBot.Assets;
 using DiscordBot.WatchRatings;
+using DiscordBot.Config;
+using System.IO;
 
 namespace DiscordBot.Commands.SlashCommands
 {
@@ -117,14 +119,65 @@ namespace DiscordBot.Commands.SlashCommands
                 result = WatchRatingsEngine.CurrentEngine.Search(search, (ulong)ctx.Channel.GuildId);
             }
 
+            DiscordInteractionResponseBuilder response = new DiscordInteractionResponseBuilder();
 
+            if(result.Length > 2000)
+            {
+                string filePath = $"{ServerConfig.ServerDirectory(ctx.Guild.Id)}{DateTime.Now.Ticks}.txt";
+                File.WriteAllText(filePath, result);
+                FileStream file = new FileStream(filePath, FileMode.Open);
+                response.AddFile(file);
+                await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, response);
+                file.Close();
+                File.Delete(filePath);
+                return;
+
+            }
+
+            response.WithContent(result);
+
+            await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, response);
+        }
+
+
+        /// <summary>
+        /// Searches the watch list for entries with specific criteria 
+        /// </summary>
+        /// <param name="ctx"></param>
+        /// <returns></returns>
+        [SlashCommand("Stats", "Generates watch ratings statistics.")]
+        public async Task Stats(InteractionContext ctx, [Option("User", "Movies that are rated by this user.")] DiscordUser user = null,
+                                                        [Option("IsTV", "Restrict search results to movies or TV instances.")] NullableBool isTV = NullableBool.Null)
+        {
+            ulong? userID = null;
+            bool? restrictTV = null;
+            switch (isTV)
+            {
+                case (NullableBool.True): restrictTV = true; break;
+                case (NullableBool.False): restrictTV = false; break;
+            }
+
+            if (user != null)
+            {
+                userID = user.Id;
+            }
+
+            string result = WatchRatingsEngine.CurrentEngine.ServerStatistics((ulong)ctx.Channel.GuildId, userID, restrictTV);
             
 
             DiscordInteractionResponseBuilder response = new DiscordInteractionResponseBuilder();
 
             if(result.Length > 2000)
             {
-                result = "Too many results. This will be handled in the future.";
+                string filePath = $"{ServerConfig.ServerDirectory(ctx.Guild.Id)}{DateTime.Now.Ticks}.txt";
+                File.WriteAllText(filePath, result);
+                FileStream file = new FileStream(filePath, FileMode.Open);
+                response.AddFile(file);
+                await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, response);
+                file.Close();
+                File.Delete(filePath);
+                return;
+
             }
 
             response.WithContent(result);

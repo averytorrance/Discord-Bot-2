@@ -34,25 +34,33 @@ namespace DiscordBot.WatchRatings
         }
 
         /// <summary>
+        /// Returns the name of the entry including the year if it exists
+        /// </summary>
+        /// <returns></returns>
+        public string TitleString()
+        {
+            if (Year != null)
+            {
+                if (IsTV)
+                {
+                    return $"{Name} (TV {Year})";
+                }
+                return $"{Name} ({Year})";
+            }
+            if (IsTV)
+            {
+                return $"{Name} (TV)";
+            }
+            return Name;
+        }
+
+        /// <summary>
         /// ToString
         /// </summary>
         /// <returns></returns>
         public override string ToString()
         {
-            string title;
-            if (IsTV)
-            {
-                title = $"**TV**: {Name}";
-            }
-            else
-            {
-                title = $"**Movie**: {Name}";
-            }
-
-            if (Year != null)
-            {
-                title = $"{title} ({Year})";
-            }
+            string title = TitleString();
 
             Statistics statistics = GetStats();
 
