@@ -131,5 +131,25 @@ namespace DiscordBot.Classes
             return content;
         }
 
+
+        /// <summary>
+        /// Checks if 2 strings are similiar based on stripping special characters, whitespace, and replacing loophole strings.
+        /// </summary>
+        /// <param name="comarable1"></param>
+        /// <param name="comparable2"></param>
+        /// <returns></returns>
+        public static bool StringSimiliar(string comparable1, string comparable2)
+        {
+            comparable1 = ReplaceLoopHoles(comparable1);
+            comparable1 = StripSpecialCharacters(comparable1);
+            comparable1 = StripWhitespace(comparable1);
+
+            comparable2 = ReplaceLoopHoles(comparable2);
+            comparable2 = StripSpecialCharacters(comparable2);
+            comparable2 = StripWhitespace(comparable2);
+
+            return comparable1 == comparable2;
+        }
+
     }
 }

@@ -201,11 +201,10 @@ namespace DiscordBot.WatchRatings
         /// <returns></returns>
         public static bool ShouldMerge(WatchEntry originalEntry, WatchEntry newEntry)
         {
-            //TODO: Add handling for when name uses loophole strings
             bool DifferentIDs = originalEntry.MessageID != newEntry.MessageID;
-            bool SameTitle = originalEntry.Name == newEntry.Name;
+            bool SameTitle = StringUtils.StringSimiliar(originalEntry.Name, newEntry.Name);
             bool SameYear = originalEntry.Year == newEntry.Year;
-            bool HasNullYear = (originalEntry.Year == null) || (newEntry == null);
+            bool HasNullYear = (originalEntry.Year == null) || (newEntry.Year == null);
             bool SameType = originalEntry.IsTV == newEntry.IsTV;
 
             return DifferentIDs && SameTitle && SameType && (HasNullYear || SameYear);
