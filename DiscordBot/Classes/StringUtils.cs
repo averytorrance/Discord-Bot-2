@@ -25,6 +25,7 @@ namespace DiscordBot.Classes
             loopholes.Add("ö", "o");
             loopholes.Add(" ", "");
             loopholes.Add("5", "g");
+            loopholes.Add("é", "e");
 
             string value;
             foreach (string x in loopholes.Keys)

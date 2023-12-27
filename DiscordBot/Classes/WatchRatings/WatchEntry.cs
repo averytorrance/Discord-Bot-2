@@ -99,6 +99,15 @@ namespace DiscordBot.WatchRatings
             return rating;
         }
 
+        /// <summary>
+        /// Checks if this watch entry has ratings
+        /// </summary>
+        /// <returns></returns>
+        public bool HasRatings()
+        {
+            return Ratings.Count > 0;
+        }
+
         #region Merge
         /// <summary>
         /// Merges a 2 watch entries
@@ -192,6 +201,7 @@ namespace DiscordBot.WatchRatings
         /// <returns></returns>
         public static bool ShouldMerge(WatchEntry originalEntry, WatchEntry newEntry)
         {
+            //TODO: Add handling for when name uses loophole strings
             bool DifferentIDs = originalEntry.MessageID != newEntry.MessageID;
             bool SameTitle = originalEntry.Name == newEntry.Name;
             bool SameYear = originalEntry.Year == newEntry.Year;
@@ -204,6 +214,10 @@ namespace DiscordBot.WatchRatings
 
         #region Statistic Methods
 
+        /// <summary>
+        /// Gets the average rating
+        /// </summary>
+        /// <returns></returns>
         public double GetAverage()
         {
             return GetStats().Mean;

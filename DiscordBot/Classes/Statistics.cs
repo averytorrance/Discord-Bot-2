@@ -101,6 +101,24 @@ namespace DiscordBot.Classes
         }
 
         /// <summary>
+        /// Sets the maximum value. May be needed if the max should be pulled from a slightly modified dataset. 
+        /// </summary>
+        /// <param name="min"></param>
+        public void SetMax(double max)
+        {
+            Maximum = max;
+        }
+
+        /// <summary>
+        /// Sets the minimum value. May be needed if the min should be pulled from a slightly modified dataset. 
+        /// </summary>
+        /// <param name="min"></param>
+        public void SetMin(double min)
+        {
+            Minimum = min;
+        }
+
+        /// <summary>
         /// Calculates the standard Deviation of a list of doubles
         /// </summary>
         /// <param name="values"></param>

@@ -53,6 +53,7 @@ namespace DiscordBot.Engines
         /// <param name="latestMessageID"></param>
         public async void GenerateNewState(ulong serverID, ulong latestMessageID)
         {
+            //TODO: Add handling for if there are any archived messages
             if (serverStates.ContainsKey(serverID))
             {
                 serverStates.Remove(serverID);
@@ -469,27 +470,44 @@ namespace DiscordBot.Engines
 
             string results = "";
 
+            /// Function on how to pull values from a WatchEntry list. Used in the select statement when converting a list 
+            /// of watch entries to ratings (double)
             Func<WatchEntry, double> dataFromWatchEntry;
-
-            if(userID != null)
+            if (userID != null)
             {
                 dataFromWatchEntry = x => { return x.GetUserRating((ulong)userID); };
-                allScores = entries.Select(x => dataFromWatchEntry(x)).ToList();
-                stats = new Statistics(allScores);
-                min = stats.Minimum;
-                max = stats.Maximum;
             }
             else
             {
                 dataFromWatchEntry = x => { return x.GetAverage(); };
-                stats = new Statistics(WatchRatingsEngineState.GetAllScores(entries));
-                min = entries.Select(x => dataFromWatchEntry(x)).Min();
-                max = entries.Select(x => dataFromWatchEntry(x)).Max();
             }
+
+            /// Function to get statistics
+            Func<List<WatchEntry>, Statistics> getStats = entryInput =>
+            {
+                Statistics retStats;
+                if (userID != null)
+                {
+                    allScores = entryInput.Select(x => dataFromWatchEntry(x)).ToList();
+                    retStats = new Statistics(allScores);
+                }
+                else
+                {
+                    retStats = new Statistics(WatchRatingsEngineState.GetAllScores(entryInput));
+                    List<WatchEntry> scoredEntries = entryInput.Where(x => x.HasRatings()).ToList();
+                    retStats.SetMin(scoredEntries.Select(x => dataFromWatchEntry(x)).Min());
+                    retStats.SetMax(scoredEntries.Select(x => dataFromWatchEntry(x)).Max());
+                }
+
+                return retStats;
+            };
+
+            stats = getStats(entries);
+
 
             results = $"**All Time Results:**\n" +
                 $"Total Watched: {stats.Count}\n{stats.BasicString()}" +
-                $"{_generateMinMaxSectionStats(entries, dataFromWatchEntry, min, max)}\n";
+                $"{_generateMinMaxSectionStats(entries, dataFromWatchEntry, stats)}\n";
 
             List<int> years = state.GetAllYears().OrderByDescending(x => x).ToList();
             foreach (int year in years)
@@ -501,23 +519,11 @@ namespace DiscordBot.Engines
                     continue;
                 }
 
-                if (userID != null)
-                {
-                    allScores = filteredEntries.Select(x => dataFromWatchEntry(x)).ToList();
-                    stats = new Statistics(allScores);
-                    min = stats.Minimum;
-                    max = stats.Maximum;
-                }
-                else
-                {
-                    stats = new Statistics(WatchRatingsEngineState.GetAllScores(filteredEntries));
-                    min = filteredEntries.Select(x => dataFromWatchEntry(x)).Min();
-                    max = filteredEntries.Select(x => dataFromWatchEntry(x)).Max();
-                }
+                stats = getStats(filteredEntries);
 
                 results = $"{results}**{year} Results:**\n" +
                     $"Total New Watched: {stats.Count}\n{stats.BasicString()}\n" +
-                    $"{_generateMinMaxSectionStats(filteredEntries, dataFromWatchEntry, min, max)}\n";   
+                    $"{_generateMinMaxSectionStats(filteredEntries, dataFromWatchEntry, stats)}\n";   
             }
 
             return results;
@@ -530,7 +536,7 @@ namespace DiscordBot.Engines
         /// <param name="DataFromWatchEntry">function with WatchEntry input and double output. Returns the data
         ///                                  from WatchEntry that statistics should be pulled from</param>
         /// <returns></returns>
-        private string _generateMinMaxSectionStats(List<WatchEntry> entries, Func<WatchEntry,double> DataFromWatchEntry, double min, double max)
+        private string _generateMinMaxSectionStats(List<WatchEntry> entries, Func<WatchEntry,double> DataFromWatchEntry, Statistics stats)
         {
             string results = "";
             if (entries.Count > 0)
@@ -547,12 +553,12 @@ namespace DiscordBot.Engines
                 };
 
 
-                results = $"{results}\nMaximum Score: {max}\n{generateSection(entries, max)}";
-                if(max == min)
+                results = $"{results}\nMaximum Score: {stats.Maximum}\n{generateSection(entries, stats.Maximum)}";
+                if(stats.Maximum == stats.Minimum)
                 {
                     return results;
                 }
-                results = $"{results}\nMinimum Score: {min}\n{generateSection(entries, min)}";
+                results = $"{results}\nMinimum Score: {stats.Minimum}\n{generateSection(entries, stats.Minimum)}";
             }
             return results;
         }
