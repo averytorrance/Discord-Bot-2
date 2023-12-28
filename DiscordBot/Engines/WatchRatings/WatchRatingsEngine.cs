@@ -53,12 +53,14 @@ namespace DiscordBot.Engines
         /// <param name="latestMessageID"></param>
         public async void GenerateNewState(ulong serverID, ulong latestMessageID)
         {
-            //TODO: Add handling for if there are any archived messages
+            List<WatchEntry> archivedEntries = _getArchivedEntries(serverID);
             if (serverStates.ContainsKey(serverID))
             {
                 serverStates.Remove(serverID);
             }
-            serverStates.Add(serverID, new WatchRatingsEngineState(serverID));
+            WatchRatingsEngineState newState = new WatchRatingsEngineState(serverID);
+            newState.ArchivedEntries = archivedEntries;
+            serverStates.Add(serverID, newState);
 
             ulong WatchChannelID = _getWatchChannelID(serverID);
             DiscordChannel watchChannel = await Program.Client.GetChannelAsync(WatchChannelID);
@@ -119,6 +121,16 @@ namespace DiscordBot.Engines
         }
 
         #region Data Load
+
+        private List<WatchEntry> _getArchivedEntries(ulong serverID)
+        {
+            WatchRatingsEngineState state;
+            if(TryGetValue(serverID, out state))
+            {
+                return state.ArchivedEntries;
+            }
+            return new List<WatchEntry>();
+        }
 
         /// <summary>
         /// Creates a dictionary maping user IDs to ratings
@@ -247,7 +259,6 @@ namespace DiscordBot.Engines
         /// <param name="messageID"></param>
         public async Task<bool> UpdateWatchEntry(ulong serverID, ulong messageID)
         {
-            
             ulong watchChannelID = _getWatchChannelID(serverID);
 
             WatchRatingsEngineState state;
@@ -598,6 +609,7 @@ namespace DiscordBot.Engines
         /// <param name="entry"></param>
         public void UpdateEntry(WatchEntry entry)
         {
+            //TODO: Add handling for archived states
             if (!WatchEntries.ContainsKey(entry.MessageID))
             {
                 WatchEntries.Add(entry.MessageID, entry);
@@ -608,7 +620,6 @@ namespace DiscordBot.Engines
                 WatchEntries.TryGetValue(entry.MessageID, out oldEntry);
                 WatchEntries.Remove(oldEntry.MessageID);
                 WatchEntries.Add(entry.MessageID, entry);
-
             }
 
             if(MergedEntries.Count == 0 || WatchEntries.Values.Select(x => x.Name == entry.Name).Count() > 1)
