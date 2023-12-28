@@ -39,19 +39,24 @@ namespace DiscordBot.WatchRatings
         /// <returns></returns>
         public string TitleString()
         {
+            string archived = "";
+            if (IsArchived())
+            {
+                archived = "[Archived]";
+            }
             if (Year != null)
             {
                 if (IsTV)
                 {
-                    return $"{Name} (TV {Year})";
+                    return $"{archived}{Name} (TV {Year})";
                 }
-                return $"{Name} ({Year})";
+                return $"{archived}{Name} ({Year})";
             }
             if (IsTV)
             {
-                return $"{Name} (TV)";
+                return $"{archived}{Name} (TV)";
             }
-            return Name;
+            return $"{archived}{Name}";
         }
 
         /// <summary>
@@ -108,6 +113,15 @@ namespace DiscordBot.WatchRatings
             return Ratings.Count > 0;
         }
 
+        /// <summary>
+        /// Checks if the archived key is in the list of keys
+        /// </summary>
+        /// <returns></returns>
+        public bool IsArchived()
+        {
+            return Keys.Contains("Archived");
+        }
+
         #region Merge
         /// <summary>
         /// Merges a 2 watch entries
@@ -153,6 +167,7 @@ namespace DiscordBot.WatchRatings
 
             WatchEntry baseEntry = entries.First();
 
+            //TODO; Merge Keys
             WatchEntry mergedEntry = new WatchEntry()
             {
                 MessageID = baseEntry.MessageID,

@@ -167,6 +167,7 @@
   <ItemGroup>
     <Compile Include="Assets\DiscordMessages.cs" />
     <Compile Include="Assets\Strings.cs" />
+    <Compile Include="Classes\DiscordHandler.cs" />
     <Compile Include="Classes\Poll.cs" />
     <Compile Include="Classes\UserProfile\DiscordUser.cs" />
     <Compile Include="Classes\Statistics.cs" />

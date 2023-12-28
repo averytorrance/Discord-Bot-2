@@ -70,5 +70,6 @@ namespace DiscordBot.Engines
         {
             return $"{ServerConfig.BackupDirectoryToday(ID)}{backupType}";
         }
+
     }
 }

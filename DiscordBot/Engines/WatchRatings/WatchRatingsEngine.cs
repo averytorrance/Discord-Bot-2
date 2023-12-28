@@ -266,7 +266,15 @@ namespace DiscordBot.Engines
 
             // Pull discord message so we don't use cached data
             DiscordChannel channel = await Program.Client.GetChannelAsync(watchChannelID);
-            DiscordMessage message = await channel.GetMessageAsync(messageID, true);
+            DiscordMessage message = await DiscordHandler.GetMessage(channel, messageID);
+
+            if(message == null)
+            {
+                Console.WriteLine($"Archiving [{messageID}]");
+                state.ArchiveEntry(messageID);
+                return true;
+            }
+            
             Console.WriteLine($"Updating {message.Content} [{message.Id}]");
 
             WatchEntry updatedEntry = await GenerateEntry(message);
@@ -520,7 +528,6 @@ namespace DiscordBot.Engines
 
             stats = getStats(entries);
 
-
             results = $"**All Time Results:**\n" +
                 $"Total Watched: {stats.Count}\n{stats.BasicString()}" +
                 $"{_generateMinMaxSectionStats(entries, dataFromWatchEntry, stats)}\n";
@@ -609,7 +616,6 @@ namespace DiscordBot.Engines
         /// <param name="entry"></param>
         public void UpdateEntry(WatchEntry entry)
         {
-            //TODO: Add handling for archived states
             if (!WatchEntries.ContainsKey(entry.MessageID))
             {
                 WatchEntries.Add(entry.MessageID, entry);
@@ -630,12 +636,39 @@ namespace DiscordBot.Engines
         }
 
         /// <summary>
+        /// Archives a watch entry. Moves an entry in the WatchEntries to the ArcivedEntried. 
+        /// </summary>
+        /// <param name="id"></param>
+        public void ArchiveEntry(ulong id)
+        {
+            if (!WatchEntries.ContainsKey(id))
+            {
+                throw new InvalidOperationException($"Attempted to archive a message with id {id}, but it does not exist.");
+            }
+            else
+            {
+                WatchEntry oldEntry;
+                WatchEntries.TryGetValue(id, out oldEntry);
+                WatchEntries.Remove(oldEntry.MessageID);
+                
+                // Only add ratings with scores added.
+                if (!oldEntry.HasRatings())
+                {
+                    return;
+                }
+                oldEntry.Keys.Add("Archived");
+                ArchivedEntries.Add(oldEntry);
+            }
+        }
+
+        /// <summary>
         /// Generates the Merged Entries Dictionary
         /// </summary>
         public void GenerateMergedStates()
         {
             MergedEntries = new Dictionary<ulong, WatchEntry>();
             List<WatchEntry> entries = WatchEntries.Values.ToList().OrderBy(x => x.Name, StringComparer.InvariantCultureIgnoreCase).ToList();
+            entries.AddRange(ArchivedEntries); // Archived entries should be considered in the merged states
 
             for(int i = 0; i < entries.Count; i++)
             {
