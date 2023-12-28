@@ -188,13 +188,14 @@
     <Compile Include="Engines\Abstract Classes and Interfaces\APIEngine.cs" />
     <Compile Include="Engines\Abstract Classes and Interfaces\IEngineState.cs" />
     <Compile Include="Engines\Abstract Classes and Interfaces\IServerEngine.cs" />
+    <Compile Include="Engines\Abstract Classes and Interfaces\ITask.cs" />
     <Compile Include="Engines\Polling\YoutubeAPIEngine.cs" />
     <Compile Include="Engines\BlackListEngine.cs" />
     <Compile Include="Engines\DiscordServerEngine.cs" />
     <Compile Include="Engines\UserProfile\DiscordUserEngine.cs" />
     <Compile Include="Engines\FileEngine.cs" />
     <Compile Include="Engines\JSONEngine.cs" />
-    <Compile Include="Engines\Polling\ReminderEngine.cs" />
+    <Compile Include="Engines\Reminders\ReminderEngine.cs" />
     <Compile Include="Engines\Games\RouletteEngine.cs" />
     <Compile Include="Engines\SQLEngine.cs" />
     <Compile Include="Engines\Polling\TaskEngine.cs" />
@@ -223,6 +224,7 @@
     <Content Include="SQLScripts\BuildDatabase.sql" />
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="Engines\Tasks\" />
     <Folder Include="Models\Interfaces\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
