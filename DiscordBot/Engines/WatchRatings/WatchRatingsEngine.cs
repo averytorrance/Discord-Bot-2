@@ -56,7 +56,7 @@ namespace DiscordBot.Engines
             Load(serverID);
             await AddMissingMessages(serverID);
 
-            //The following is too performance intensive
+            //The following is too performance intensive to do on startup.
             //await ArchiveMissingMessages(serverID);
         }
 
@@ -150,8 +150,22 @@ namespace DiscordBot.Engines
                 return false;
             }
 
-            ///TODO: Add handling for if the latest message doesn't exist
-            List<DiscordMessage> messages = await _getAllMessagesAfter(watchChannel, state.GetNewestEntry());
+            //Handling for if the newest entry message was deleted
+            ulong? messageID = state.GetNewestEntry();
+
+            if(messageID == null)
+            {
+                return true;
+            }
+
+            while(DiscordHandler.GetMessage(watchChannel, (ulong)messageID) == null)
+            {
+                state.ArchiveEntry((ulong)messageID);
+                messageID = state.GetNewestEntry();
+            }
+            
+
+            List<DiscordMessage> messages = await _getAllMessagesAfter(watchChannel, (ulong) messageID );
             messages = messages.Where(x => !state.HasEntry(x.Id)).ToList(); // List of missing messages
             await UpdateWatchEntries(messages.Select(x => x.Id).ToList(), serverID);
             return true;
@@ -722,6 +736,8 @@ namespace DiscordBot.Engines
         /// <param name="entry"></param>
         public void UpdateEntry(WatchEntry entry)
         {
+            entry.ServerID = ServerID; // Ensure that the server ID is correct
+
             if (!WatchEntries.ContainsKey(entry.MessageID))
             {
                 WatchEntries.Add(entry.MessageID, entry);
@@ -819,18 +835,28 @@ namespace DiscordBot.Engines
         /// Gets the oldest entry in the watch list
         /// </summary>
         /// <returns></returns>
-        public ulong GetOldestEntry()
+        public ulong? GetOldestEntry()
         {
-            return WatchEntries.Values.OrderByDescending(x => x.EntryTime).Last().MessageID;
+            var entries = WatchEntries.Values.OrderByDescending(x => x.EntryTime).ToList();
+            if (entries.Count == 0)
+            {
+                return 0;
+            }
+            return entries.Last().MessageID;
         }
 
         /// <summary>
         /// Gets the newest entry in the watch list
         /// </summary>
         /// <returns></returns>
-        public ulong GetNewestEntry()
+        public ulong? GetNewestEntry()
         {
-            return WatchEntries.Values.OrderBy(x => x.EntryTime).Last().MessageID;
+            var entries = WatchEntries.Values.OrderBy(x => x.EntryTime).ToList();
+            if(entries.Count == 0)
+            {
+                return 0;
+            }
+            return entries.Last().MessageID;
         }
 
         /// <summary>
