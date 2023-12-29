@@ -7,7 +7,6 @@ using Newtonsoft.Json;
 using DiscordBot.Config;
 using System.Threading;
 using DiscordBot.WatchRatings;
-using System.IO;
 using DiscordBot.Classes;
 
 namespace DiscordBot.Engines
@@ -46,7 +45,6 @@ namespace DiscordBot.Engines
         }
 
         #region Start Up
-
         /// <summary>
         /// Startup Methods
         /// </summary>
@@ -113,7 +111,6 @@ namespace DiscordBot.Engines
             {
                 return messages;
             }
-
 
             IReadOnlyList<DiscordMessage> watchMessages = await channel.GetMessagesBeforeAsync(latestMessageID);
 
@@ -238,8 +235,6 @@ namespace DiscordBot.Engines
 
         #region Data Load
 
-
-
         private List<WatchEntry> _getArchivedEntries(ulong serverID)
         {
             WatchRatingsEngineState state;
@@ -301,8 +296,6 @@ namespace DiscordBot.Engines
 
             return ratings;
         }
-
-        
 
         /// <summary>
         /// Validates a watch rating message
@@ -445,8 +438,6 @@ namespace DiscordBot.Engines
             {
                 return null;
             }
-
-           
 
             string _year = tvSplit[tvSplit.Length - 1];
             if (_year[_year.Length - 1] == ')' && _year.Length == 5)
