@@ -192,6 +192,7 @@
     <Compile Include="Engines\Polling\YoutubeAPIEngine.cs" />
     <Compile Include="Engines\BlackListEngine.cs" />
     <Compile Include="Engines\DiscordServerEngine.cs" />
+    <Compile Include="Engines\Tasks\ReminderTask.cs" />
     <Compile Include="Engines\UserProfile\DiscordUserEngine.cs" />
     <Compile Include="Engines\FileEngine.cs" />
     <Compile Include="Engines\JSONEngine.cs" />
@@ -224,7 +225,6 @@
     <Content Include="SQLScripts\BuildDatabase.sql" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Engines\Tasks\" />
     <Folder Include="Models\Interfaces\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

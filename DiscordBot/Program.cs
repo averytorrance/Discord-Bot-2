@@ -85,7 +85,7 @@ namespace DiscordBot
             Commands.RegisterCommands<WatchCommands>();
 
             slashCommands.RegisterCommands<BasicSlashCommands>();
-            slashCommands.RegisterCommands<ReminderCommands>();
+            slashCommands.RegisterCommands<ReminderCommands>(427296058310393856);
             slashCommands.RegisterCommands<WatchSlashCommands>(427296058310393856);
             slashCommands.RegisterCommands<ProfileCommands>();
 
@@ -112,9 +112,14 @@ namespace DiscordBot
         private static void _InitalizeEngines()
         {
             //TODO: Turn on Watch Plan Engine. Fix issues with deleted messages
+            //TODO: Initialize some sort of poller
+            //TODO: Add tasks from reminder engine stats to the poller
             new ReminderEngine();
             new WatchRatingsEngine();
             //new WatchPlanEngine();
+
+            new TaskEngine();
+            TaskEngine.CurrentEngine.Start();
         }
 
         /// <summary>
@@ -126,9 +131,9 @@ namespace DiscordBot
         private static async Task GuildAvailableHandler(DiscordClient sender, GuildCreateEventArgs e)
         {
             ///Load Reminder Engine States
-            ReminderEngine.CurrentEngine.Load(e.Guild.Id);
-            ReminderEngine.CurrentEngine.SendStaleReminders();
-            WatchRatingsEngine.CurrentEngine.Load(e.Guild.Id);
+            ReminderEngine.CurrentEngine.Load(e.Guild.Id, true);
+            ReminderEngine.CurrentEngine.SendStaleReminders(e.Guild.Id);
+            WatchRatingsEngine.CurrentEngine.StartUp(e.Guild.Id);
             //WatchPlanEngine.CurrentEngine.Load(e.Guild.Id);
         }
 

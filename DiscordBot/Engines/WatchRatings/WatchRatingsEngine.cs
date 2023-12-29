@@ -45,6 +45,36 @@ namespace DiscordBot.Engines
             CurrentEngine = this;
         }
 
+        #region Start Up
+
+        /// <summary>
+        /// Startup Methods
+        /// </summary>
+        /// <param name="serverID"></param>
+        public async void StartUp(ulong serverID)
+        {
+            Load(serverID);
+            await AddMissingMessages(serverID);
+
+            //The following is too performance intensive
+            //await ArchiveMissingMessages(serverID);
+        }
+
+        /// <summary>
+        /// Loads an enginestate for a specific discord server
+        /// </summary>
+        /// <param name="serverID">discord serverID</param>
+        public override void Load(ulong serverID)
+        {
+            WatchRatingsEngineState state;
+            if (TryGetValue(serverID, out state))
+            {
+                serverStates.Remove(serverID);
+            }
+            state = EngineState.Load<WatchRatingsEngineState>(new WatchRatingsEngineState(serverID));
+            serverStates.Add(serverID, state);
+        }
+
         /// <summary>
         /// Generates a new Watch Ratings state using all of the messages before the 
         /// message with latestMessageID. 
@@ -65,7 +95,7 @@ namespace DiscordBot.Engines
             ulong WatchChannelID = _getWatchChannelID(serverID);
             DiscordChannel watchChannel = await Program.Client.GetChannelAsync(WatchChannelID);
 
-            List<DiscordMessage> messages = await _getAllMessages(watchChannel, latestMessageID);
+            List<DiscordMessage> messages = await _getAllMessagesBefore(watchChannel, latestMessageID);
 
             await UpdateWatchEntries(messages.Select(x => x.Id).ToList(), serverID); 
         }
@@ -76,7 +106,7 @@ namespace DiscordBot.Engines
         /// <param name="channel"></param>
         /// <param name="latestMessageID"></param>
         /// <returns></returns>
-        private async Task<List<DiscordMessage>> _getAllMessages(DiscordChannel channel, ulong latestMessageID)
+        private async Task<List<DiscordMessage>> _getAllMessagesBefore(DiscordChannel channel, ulong latestMessageID)
         {
             List<DiscordMessage> messages = new List<DiscordMessage>();
             if (latestMessageID == null)
@@ -95,32 +125,106 @@ namespace DiscordBot.Engines
             messages.AddRange(watchMessages);
 
             ulong lastMessageID = messages.Last().Id;
-            if(lastMessageID == null)
+            if(lastMessageID == null || watchMessages.Count < 100)
             {
                 return messages;
             }
 
-            List<DiscordMessage> addThese = await _getAllMessages(channel, lastMessageID);
+            List<DiscordMessage> addThese = await _getAllMessagesBefore(channel, lastMessageID);
             messages.AddRange(addThese);
             return messages;
         }
 
         /// <summary>
-        /// Loads an enginestate for a specific discord server
+        /// Adds missing messages in the watch channel to the server state. This can happen if the bot goes offline
         /// </summary>
-        /// <param name="serverID">discord serverID</param>
-        public override void Load(ulong serverID)
+        /// <param name="serverID"></param>
+        public async Task<bool> AddMissingMessages(ulong serverID)
         {
+            ulong WatchChannelID = _getWatchChannelID(serverID);
+            DiscordChannel watchChannel = await Program.Client.GetChannelAsync(WatchChannelID);
+
             WatchRatingsEngineState state;
-            if (TryGetValue(serverID, out state))
+            if(!TryGetValue(serverID, out state))
             {
-                serverStates.Remove(serverID);
+                return false;
             }
-            state = EngineState.Load<WatchRatingsEngineState>(new WatchRatingsEngineState(serverID));
-            serverStates.Add(serverID, state);
+
+            ///TODO: Add handling for if the latest message doesn't exist
+            List<DiscordMessage> messages = await _getAllMessagesAfter(watchChannel, state.GetNewestEntry());
+            messages = messages.Where(x => !state.HasEntry(x.Id)).ToList(); // List of missing messages
+            await UpdateWatchEntries(messages.Select(x => x.Id).ToList(), serverID);
+            return true;
         }
 
+        /// <summary>
+        /// Gets  a list of all of the messages before a specific message
+        /// </summary>
+        /// <param name="channel"></param>
+        /// <param name="latestMessageID"></param>
+        /// <returns></returns>
+        private async Task<List<DiscordMessage>> _getAllMessagesAfter(DiscordChannel channel, ulong afterMessageID)
+        {
+            List<DiscordMessage> messages = new List<DiscordMessage>();
+            if (afterMessageID == null)
+            {
+                return messages;
+            }
+
+            IReadOnlyList<DiscordMessage> watchMessages = await channel.GetMessagesAfterAsync(afterMessageID);
+
+            if (watchMessages == null || watchMessages.Count == 0)
+            {
+                return messages;
+            }
+
+            messages.AddRange(watchMessages);
+
+            ulong lastMessageID = messages.OrderBy(x => x.Id).Last().Id;
+            if (lastMessageID == null || watchMessages.Count < 100)
+            {
+                return messages;
+            }
+
+            List<DiscordMessage> addThese = await _getAllMessagesAfter(channel, lastMessageID);
+            messages.AddRange(addThese);
+            return messages;
+        }
+
+        /// <summary>
+        /// Checks all messages in the watch state and archives any missing messages
+        /// </summary>
+        /// <param name="serverID"></param>
+        public async Task<bool> ArchiveMissingMessages(ulong serverID)
+        {
+            ulong WatchChannelID = _getWatchChannelID(serverID);
+            DiscordChannel watchChannel = await Program.Client.GetChannelAsync(WatchChannelID);
+
+            WatchRatingsEngineState state;
+            if (!TryGetValue(serverID, out state))
+            {
+                return false;
+            }
+
+            List<WatchEntry> entries = state.GetEntries();
+            DiscordMessage message;
+
+            foreach (WatchEntry entry in entries)
+            {
+                message = await DiscordHandler.GetMessage(watchChannel, entry.MessageID);
+                if(message == null)
+                {
+                    state.ArchiveEntry(entry.MessageID);
+                }
+            }
+
+            return true;
+        }
+        #endregion
+
         #region Data Load
+
+
 
         private List<WatchEntry> _getArchivedEntries(ulong serverID)
         {
@@ -183,6 +287,8 @@ namespace DiscordBot.Engines
 
             return ratings;
         }
+
+        
 
         /// <summary>
         /// Validates a watch rating message
@@ -628,11 +734,11 @@ namespace DiscordBot.Engines
                 WatchEntries.Add(entry.MessageID, entry);
             }
 
-            if(MergedEntries.Count == 0 || WatchEntries.Values.Select(x => x.Name == entry.Name).Count() > 1)
+            if (MergedEntries.Count == 0 || WatchEntries.Values.Select(x => x.Name == entry.Name).Count() > 1)
             {
                 GenerateMergedStates();
             }
-            SaveState();  
+            SaveState();
         }
 
         /// <summary>
@@ -650,15 +756,26 @@ namespace DiscordBot.Engines
                 WatchEntry oldEntry;
                 WatchEntries.TryGetValue(id, out oldEntry);
                 WatchEntries.Remove(oldEntry.MessageID);
-                
+
                 // Only add ratings with scores added.
                 if (!oldEntry.HasRatings())
                 {
                     return;
                 }
                 oldEntry.Keys.Add("Archived");
+                Console.WriteLine($"Archiving {oldEntry.Name} [{oldEntry.MessageID}]");
                 ArchivedEntries.Add(oldEntry);
+                SaveState();
             }
+        }
+
+        /// <summary>
+        /// Checks if a message ID is in the WatchEntries
+        /// </summary>
+        /// <param name="id"></param>
+        public bool HasEntry(ulong id)
+        {
+            return WatchEntries.ContainsKey(id);
         }
 
         /// <summary>
@@ -670,11 +787,11 @@ namespace DiscordBot.Engines
             List<WatchEntry> entries = WatchEntries.Values.ToList().OrderBy(x => x.Name, StringComparer.InvariantCultureIgnoreCase).ToList();
             entries.AddRange(ArchivedEntries); // Archived entries should be considered in the merged states
 
-            for(int i = 0; i < entries.Count; i++)
+            for (int i = 0; i < entries.Count; i++)
             {
                 WatchEntry baseEntry = entries[i];
                 List<WatchEntry> mergeThese = new List<WatchEntry>();
-                for(int j = i+1; j < entries.Count; j++)
+                for (int j = i + 1; j < entries.Count; j++)
                 {
                     WatchEntry checkMerge = entries[j];
                     if (!WatchEntry.ShouldMerge(baseEntry, checkMerge))
@@ -685,7 +802,7 @@ namespace DiscordBot.Engines
                     mergeThese.Add(checkMerge);
                 }
 
-                if(mergeThese.Count == 0)
+                if (mergeThese.Count == 0)
                 {
                     MergedEntries.Add(baseEntry.MessageID, baseEntry);
                 }
@@ -696,6 +813,24 @@ namespace DiscordBot.Engines
                     MergedEntries.Add(mergedEntry.MessageID, mergedEntry);
                 }
             }
+        }
+
+        /// <summary>
+        /// Gets the oldest entry in the watch list
+        /// </summary>
+        /// <returns></returns>
+        public ulong GetOldestEntry()
+        {
+            return WatchEntries.Values.OrderByDescending(x => x.EntryTime).Last().MessageID;
+        }
+
+        /// <summary>
+        /// Gets the newest entry in the watch list
+        /// </summary>
+        /// <returns></returns>
+        public ulong GetNewestEntry()
+        {
+            return WatchEntries.Values.OrderBy(x => x.EntryTime).Last().MessageID;
         }
 
         /// <summary>
