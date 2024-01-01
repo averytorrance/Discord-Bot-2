@@ -55,18 +55,18 @@ namespace DiscordBot.Commands
         }
 
         /// <summary>
-        /// Selects a random item from a list of input items
+        /// Returns a random duck picture
         /// </summary>
         /// <param name="ctx">command context</param>
-        /// <param name="names">input parameters. handling added to use ',' as the delimeter for each item.</param>
         /// <returns></returns>
-        [Command("test")]
-        public async Task test(CommandContext ctx, params string[] names)
+        [Command("duck")]
+        public async Task duck(CommandContext ctx)
         {
-            ulong serverID = ctx.Guild.Id;
+            DuckEngine duck = new DuckEngine();
+            string url = duck.GetRandomDuck();
 
-            ReminderEngine.CurrentEngine.SendReminder(serverID, Int32.Parse(names[0]));
 
+            await ctx.Message.RespondAsync(url);
         }
 
 

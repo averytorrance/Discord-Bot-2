@@ -192,9 +192,13 @@
     <Compile Include="Engines\Abstract Classes and Interfaces\IEngine.cs" />
     <Compile Include="Engines\Abstract Classes and Interfaces\IServerEngine.cs" />
     <Compile Include="Engines\Abstract Classes and Interfaces\ITask.cs" />
-    <Compile Include="Engines\Polling\YoutubeAPIEngine.cs" />
+    <Compile Include="Engines\DuckEngine.cs" />
+    <Compile Include="Engines\YoutubeAPIEngine.cs" />
     <Compile Include="Engines\BlackListEngine.cs" />
     <Compile Include="Engines\DiscordServerEngine.cs" />
+    <Compile Include="Engines\Tasks\ArchiveWatchRatingsTask.cs" />
+    <Compile Include="Engines\Tasks\ChristmasReminderTask.cs" />
+    <Compile Include="Engines\Tasks\HealthCheckTask.cs" />
     <Compile Include="Engines\Tasks\ReminderTask.cs" />
     <Compile Include="Engines\FileEngine.cs" />
     <Compile Include="Engines\JSONEngine.cs" />
@@ -202,6 +206,8 @@
     <Compile Include="Engines\Games\RouletteEngine.cs" />
     <Compile Include="Engines\SQLEngine.cs" />
     <Compile Include="Engines\Polling\TaskEngine.cs" />
+    <Compile Include="Engines\Tasks\WatchRatingsAddMissingEntriesTask.cs" />
+    <Compile Include="Engines\Tasks\YoutubeTask.cs" />
     <Compile Include="Engines\WatchPlan\WatchPlanEngine.cs" />
     <Compile Include="Engines\DiscordUserEngine.cs" />
     <Compile Include="Engines\WatchRatings\WatchRatingsEngine.cs" />

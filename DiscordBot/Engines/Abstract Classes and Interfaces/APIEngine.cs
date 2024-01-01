@@ -9,7 +9,7 @@ using RestSharp;
 
 namespace DiscordBot.Engines
 {
-    abstract class APIEngine
+    public abstract class APIEngine
     {
         /// <summary>
         /// Base URL for the API
@@ -21,6 +21,16 @@ namespace DiscordBot.Engines
         /// </summary>
         /// <returns></returns>
         public abstract string GetAPIKey();
+
+        /// <summary>
+        /// Returns the base URL with an appended endpoint
+        /// </summary>
+        /// <param name="endpoint"></param>
+        /// <returns></returns>
+        public string EndPointURL(string endpoint)
+        {
+            return $"{BaseURL}/{endpoint}";
+        }
 
         /// <summary>
         /// Generates a request object. Classes implementing this abstract class
