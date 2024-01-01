@@ -69,12 +69,11 @@ namespace DiscordBot.WatchRatings
 
             Statistics statistics = GetStats();
 
-            LocalUserEngine userEngine = new LocalUserEngine();
+            DiscordUserEngine userEngine = new DiscordUserEngine();
             string scores = "";
             foreach (ulong userID in Ratings.Keys)
             {
-                //TODO: Fix hardcoded value
-                LocalUser user = userEngine.GetUser(userID, 427296058310393856);
+                DUser user = userEngine.GetUser(userID);
                 double rating = GetUserRating(userID);
                 if (user == null)
                 {
@@ -90,7 +89,7 @@ namespace DiscordBot.WatchRatings
         }
 
         /// <summary>
-        /// Gets a user rating for the ratings dictionary, given their UserID
+        /// Gets a user rating for the ratings dictionary, given their ID
         /// </summary>
         /// <param name="userID"></param>
         /// <returns></returns>

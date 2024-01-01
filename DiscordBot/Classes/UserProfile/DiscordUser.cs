@@ -1,5 +1,8 @@
 ﻿using System.Collections.Generic;
 using DSharpPlus.Entities;
+using DSharpPlus.SlashCommands;
+using System;
+using DiscordBot.Engines;
 
 namespace DiscordBot.UserProfile
 {
@@ -15,9 +18,9 @@ namespace DiscordBot.UserProfile
         public string UserName { get; set; }
 
         /// <summary>
-        /// UserID
+        /// ID
         /// </summary>
-        public ulong UserID { get; set; }
+        public ulong ID { get; set; }
 
         /// <summary>
         /// URL for the User's Avatar
@@ -44,16 +47,34 @@ namespace DiscordBot.UserProfile
         /// </summary>
         public bool IsAltUser { get; set; }
 
-        public DUser() { }
+        /// <summary>
+        /// User's TimeZone
+        /// </summary>
+        public TimeZones _timezone { get; set; } = TimeZones.CST;
+
+        /// <summary>
+        /// Creates a new DUser obejct from a Discord User
+        /// </summary>
+        /// <param name="user"></param>
+        /// <returns></returns>
+        public static DUser CreateDUser(DiscordUser user) 
+        {
+            return new DUser()
+            {
+                UserName = user.Username,
+                ID = user.Id,
+                AvatarURL = user.AvatarUrl,
+            };
+        }
 
         /// <summary>
         /// Checks if a Discord User is equal to another Discord User
         /// </summary>
         /// <param name="user">a Discord user object</param>
         /// <returns>true if the obejcts are the same person on the same server, false otherwise</returns>
-        public bool Equals(LocalUser user)
+        public bool Equals(ServerUser user)
         {
-            return user.UserID == UserID;
+            return user.ID == ID;
         }
 
         /// <summary>
@@ -65,14 +86,35 @@ namespace DiscordBot.UserProfile
             DiscordEmbedBuilder profile = new DiscordEmbedBuilder()
                 .WithColor(DiscordColor.Purple)
                 .WithTitle($"{UserName}'s Profile")
-                .WithThumbnail(AvatarURL)
-                .WithDescription(GenerateDescription());
+                .WithThumbnail(AvatarURL);
             return profile;
         }
 
-        public string GenerateDescription()
+        /// <summary>
+        /// Gets the TimeZone for a user
+        /// </summary>
+        /// <returns></returns>
+        public TimeZoneInfo TimeZone()
         {
-            return $"Address: {Address}";
+            return TimeZoneInfo.FindSystemTimeZoneById(_timezone.GetName());
+        }
+
+        /// <summary>
+        /// Gets the User's local time
+        /// </summary>
+        /// <returns></returns>
+        public DateTime LocalTime()
+        {
+            return LocalTime(DateTime.UtcNow);
+        }
+
+        /// <summary>
+        /// Gets the User's local time
+        /// </summary>
+        /// <returns></returns>
+        public DateTime LocalTime(DateTime time)
+        {
+            return TimeZoneInfo.ConvertTime(time, TimeZone());
         }
 
         public bool SetAddress(string address)
@@ -102,13 +144,15 @@ namespace DiscordBot.UserProfile
 
     }
 
-
     /// <summary>
     /// Discord User specific to a server
     /// Used for interactions in a specific discord server
     /// </summary>
-    public class LocalUser : DUser
+    public class ServerUser
     {
+
+        public ulong ID { get; set; }
+
         /// <summary>
         /// Server ID for the User Profile
         /// </summary>
@@ -124,22 +168,32 @@ namespace DiscordBot.UserProfile
         /// </summary>
         public double Debt { get; set; } = 0;
 
-        /// <summary>
-        /// Constructor
-        /// </summary>
-        public LocalUser() { }
+
 
         /// <summary>
         /// Constructor
         /// </summary>
         /// <param name="user">Discord Member Object</param>
-        public LocalUser(DiscordMember user)
+        public static ServerUser CreateServerUser(DiscordMember user)
         {
-            
-            this.UserID = user.Id;
-            this.UserName = user.Username;
-            this.ServerID = user.Guild.Id;
-            this.AvatarURL = user.AvatarUrl;
+            return new ServerUser()
+            {
+                ID = user.Id,
+                ServerID = user.Guild.Id
+            };        
+        }
+
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="user">Discord Member Object</param>
+        public static ServerUser CreateServerUser(ulong userID, ulong serverID)
+        {
+            return new ServerUser()
+            {
+                ID = userID,
+                ServerID = serverID
+            };
         }
 
         /// <summary>
@@ -147,16 +201,33 @@ namespace DiscordBot.UserProfile
         /// </summary>
         /// <param name="user">a Discord user object</param>
         /// <returns>true if the obejcts are the same person on the same server, false otherwise</returns>
-        public new bool Equals(LocalUser user)
+        public new bool Equals(ServerUser user)
         {
-            return user.UserID == UserID && user.ServerID == ServerID;
+            return user.ID == ID && user.ServerID == ServerID;
         }
 
+        /// <summary>
+        /// Description text for a user profile
+        /// </summary>
+        /// <returns></returns>
         public string Description()
         {
-            string description = $"Server XP: {XP}\n" +
+            DUser user = GetUser();
+
+            string description = $"TimeZone: {user._timezone.GetName()}\n" +
+                $"Server XP: {XP}\n" +
                 $"Debt: {Debt}\n";
             return description;
+        }
+
+        /// <summary>
+        /// Gets the corresponding D User object for this user
+        /// </summary>
+        /// <returns></returns>
+        private DUser GetUser()
+        {
+            DiscordUserEngine engine = new DiscordUserEngine();
+            return engine.GetUser(ID);
         }
 
         /// <summary>
@@ -169,15 +240,26 @@ namespace DiscordBot.UserProfile
         }
 
         /// <summary>
+        /// Adds an amount to a chat members bill.
+        /// </summary>
+        /// <param name="amount">the amount to add to a chat member's bill</param>
+        public void AddXP(double amount = 1)
+        {
+            this.XP = this.XP+ amount;
+        }
+
+        /// <summary>
         /// Generates the Embed for the user profile
         /// </summary>
         /// <returns>DisordEmbedBuilder object for the profile</returns>
-        public new DiscordEmbedBuilder GenerateEmbedProfile()
+        public DiscordEmbedBuilder GenerateEmbedProfile()
         {
+            DUser user = GetUser();
+
             DiscordEmbedBuilder profile = new DiscordEmbedBuilder()
                 .WithColor(DiscordColor.Purple)
-                .WithTitle($"{UserName}'s Profile")
-                .WithThumbnail(AvatarURL)
+                .WithTitle($"{user.UserName}'s Profile")
+                .WithThumbnail(user.AvatarURL)
                 .WithDescription(Description());
             return profile;
         }
@@ -190,6 +272,19 @@ namespace DiscordBot.UserProfile
         {
             return new DiscordMessageBuilder().AddEmbed(GenerateEmbedProfile());
         }
+    }
 
+    public enum TimeZones
+    {
+        [ChoiceName("Central Standard Time")]
+        CST,
+        [ChoiceName("Eastern Standard Time")]
+        EST,
+        [ChoiceName("Mountain Standard Time")]
+        MST,
+        [ChoiceName("Pacific Standard Time")]
+        PST,
+        [ChoiceName("UTC")]
+        UTC,
     }
 }

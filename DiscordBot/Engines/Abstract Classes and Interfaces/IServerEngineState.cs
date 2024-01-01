@@ -1,11 +1,21 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using DiscordBot.Config;
 using Newtonsoft.Json;
 
 namespace DiscordBot.Engines
 {
-    public interface IEngineState
+    public interface IServerEngineState
     {
+        /// <summary>
+        /// Server ID for this state
+        /// </summary>
+        ulong ServerID { get; set; }
+
         /// <summary>
         /// Directory that stores the Engine State file
         /// </summary>
@@ -26,13 +36,28 @@ namespace DiscordBot.Engines
         bool SaveState();
     }
 
-    public abstract class EngineState : IEngineState
+    public abstract class ServerEngineState : IServerEngineState
     {
+        /// <summary>
+        /// Server ID for this state
+        /// </summary>
+        public ulong ServerID { get; set; }
+
         /// <summary>
         /// The name of the file storing the state
         /// </summary>
         [JsonIgnore]
         public abstract string StateFile_ { get; }
+
+        /// <summary>
+        /// Default constructor
+        /// </summary>
+        /// <param name="serverID">Discord ServerID</param>
+        public ServerEngineState(ulong serverID)
+        {
+            ServerID = serverID;
+        }
+
 
         /// <summary>
         /// Filepath to the Reminders JSON.
@@ -41,7 +66,7 @@ namespace DiscordBot.Engines
         /// <returns></returns>
         public string FileDirectory()
         {
-            return "";
+            return $"{ServerConfig.ServerDirectory(ServerID)}";
         }
 
         /// <summary>
@@ -62,11 +87,11 @@ namespace DiscordBot.Engines
         /// Creates an engine state from the JSON file
         /// </summary>
         /// <returns></returns>
-        public static T Load<T>(IEngineState engineState)
+        public static T Load<T>(IServerEngineState engineState)
         {
             JSONEngine engine = new JSONEngine();
 
-            if (engineState.FileDirectory() != "" && !Directory.Exists(engineState.FileDirectory()))
+            if (!Directory.Exists(engineState.FileDirectory()))
             {
                 Directory.CreateDirectory(engineState.FileDirectory());
             }

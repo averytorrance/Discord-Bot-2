@@ -35,7 +35,7 @@ namespace DiscordBot.Engines
             {
                 serverStates.Remove(serverID);
             }
-            state = EngineState.Load<WatchPlanEngineState>(new WatchPlanEngineState(serverID));
+            state = ServerEngineState.Load<WatchPlanEngineState>(new WatchPlanEngineState(serverID));
             serverStates.Add(serverID, state);
         }
 
@@ -113,7 +113,7 @@ namespace DiscordBot.Engines
 
     }
 
-    public class WatchPlanEngineState : EngineState
+    public class WatchPlanEngineState : ServerEngineState
     {
         public List<WatchSuggestion> Suggestions = new List<WatchSuggestion>();
 

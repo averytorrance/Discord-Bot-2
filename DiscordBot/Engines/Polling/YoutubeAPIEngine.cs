@@ -68,7 +68,7 @@ namespace DiscordBot.Engines
     }
 
 
-    public class YoutubeEngineState : EngineState
+    public class YoutubeEngineState : ServerEngineState
     {
         /// <summary>
         /// List of video IDs that have been sent

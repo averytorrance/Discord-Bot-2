@@ -53,7 +53,7 @@ namespace DiscordBot.Classes
                 Channel = await Program.Client.GetChannelAsync(_channelID);
                 ChannelIsDeleted = false;
             }
-            catch (NotFoundException e)
+            catch (NotFoundException)
             {
                 ChannelIsDeleted = true;
             }

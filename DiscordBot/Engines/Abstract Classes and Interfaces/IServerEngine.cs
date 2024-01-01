@@ -10,7 +10,7 @@ namespace DiscordBot.Engines
         /// <summary>
         /// Dictionary mapping server states to a state object
         /// </summary>
-        Dictionary<ulong, IEngineState> serverStates { get; set; }
+        Dictionary<ulong, IServerEngineState> serverStates { get; set; }
 
         /// <summary>
         /// Loads a specific server's engine state. 
@@ -31,7 +31,7 @@ namespace DiscordBot.Engines
         /// Dictionary to store enginestates for specific servers
         /// Keys are the discord server IDs
         /// </summary>
-        public Dictionary<ulong, IEngineState> serverStates { get; set; }
+        public Dictionary<ulong, IServerEngineState> serverStates { get; set; }
 
         /// <summary>
         /// Type of EngineStates that this engine should contain
@@ -40,7 +40,7 @@ namespace DiscordBot.Engines
 
         public ServerEngine()
         {
-            serverStates = new Dictionary<ulong, IEngineState>();
+            serverStates = new Dictionary<ulong, IServerEngineState>();
         }
 
         /// <summary>
@@ -52,7 +52,7 @@ namespace DiscordBot.Engines
         public bool TryGetValue<T>(ulong serverID, out T state)
         {
             state = default(T);
-            IEngineState foundState;
+            IServerEngineState foundState;
             if(serverStates.TryGetValue(serverID, out foundState))
             {
                 if (foundState is T)

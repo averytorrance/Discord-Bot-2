@@ -177,7 +177,6 @@ namespace DiscordBot.Commands.SlashCommands
                 file.Close();
                 File.Delete(filePath);
                 return;
-
             }
 
             response.WithContent(result);

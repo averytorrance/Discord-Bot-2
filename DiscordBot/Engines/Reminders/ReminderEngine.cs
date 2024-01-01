@@ -7,6 +7,10 @@ using DiscordBot.Models;
 using Newtonsoft.Json;
 using System.IO;
 using DiscordBot.Config;
+using DSharpPlus.Entities;
+using DiscordBot.Engines.Tasks;
+using DiscordBot.Classes;
+using DiscordBot.UserProfile;
 
 namespace DiscordBot.Engines
 {
@@ -24,19 +28,48 @@ namespace DiscordBot.Engines
             CurrentEngine = this;
         }
 
+        public static async Task<DiscordChannel> GetReminderChannel(ulong serverID)
+        {
+            ServerConfig config = ServerConfig.GetServerConfig(serverID);
+            if(config.ReminderChannelID != null)
+            {
+                return await Program.Client.GetChannelAsync(config.ReminderChannelID);
+            }
+            else if(config.BotChannelID != null)
+            {
+                return await Program.Client.GetChannelAsync(config.BotChannelID);
+            }
+
+            return null;
+
+        }
+
         /// <summary>
         /// Load reminder states
         /// </summary>
         /// <param name="serverID"></param>
         public override void Load(ulong serverID)
         {
+            Load(serverID, false);
+        }
+
+        /// <summary>
+        /// Load reminder states
+        /// </summary>
+        /// <param name="serverID"></param>
+        public void Load(ulong serverID, bool loadTasks)
+        {
             ReminderState state;
             if (TryGetValue(serverID, out state))
             {
                 serverStates.Remove(serverID);
             }
-            state = EngineState.Load<ReminderState>(new ReminderState(serverID));
+            state = ServerEngineState.Load<ReminderState>(new ReminderState(serverID));
             serverStates.Add(serverID, state);
+            if (loadTasks)
+            {
+                state.LoadTasks();
+            }
         }
 
         /// <summary>
@@ -46,55 +79,33 @@ namespace DiscordBot.Engines
         /// <param name="message"></param>
         /// <param name="ownerID"></param>
         /// <param name="sendTime"></param>
-        public void CreateReminder(ulong serverID, string message, ulong ownerID, DateTime sendTime)
+        /// <param name="frequency"></param>
+        /// <param name="frequencyFactor"></param>
+        /// <returns>The ID of the new reminder</returns>
+        public int CreateReminder(ulong serverID, string message, ulong ownerID, DateTime sendTime, Freq frequency = Freq.None, int frequencyFactor = 1)
         {
             Load(serverID);
             ReminderState state;
             TryGetValue(serverID, out state);
-            state.CreateReminder(message, ownerID, sendTime);
+            return state.CreateReminder(message, ownerID, sendTime, frequency, frequencyFactor);
         }
 
         /// <summary>
         /// Triggers a send reminder for all servers
         /// </summary>
-        public async void SendReminders()
+        public async void SendReminder(ulong serverID, int reminderID)
         {
-            await Task.Run(() =>
+            ReminderState state;
+            if(TryGetValue(serverID, out state))
             {
-                TaskRunning = true;
-                foreach (ReminderState state in serverStates.Values)
-                {
-                    state.SendReminder();
-                }
-                TaskRunning = false;
-            });
+                await state.SendReminder(reminderID);
+            }
         }
 
         /// <summary>
         /// Triggers send stale remidners for all servers
         /// </summary>
-        public async void SendStaleReminders()
-        {
-            if(serverStates == null)
-            {
-                return;
-            }
-            await Task.Run(() =>
-            {
-                TaskRunning = true;
-                foreach (ReminderState state in serverStates.Values)
-                {
-                    state.SendStaleReminders();
-                }
-                TaskRunning = false;
-            });
-        }
-
-        /// <summary>
-        /// Trigers a send reminder for a specific discord server
-        /// </summary>
-        /// <param name="serverID"></param>
-        public  void SendReminders(ulong serverID)
+        public void SendStaleReminders(ulong serverID)
         {
             if (serverStates == null)
             {
@@ -104,12 +115,22 @@ namespace DiscordBot.Engines
             ReminderState state;
             if (TryGetValue(serverID, out state))
             {
-                state.SendReminder();
+                state.SendStaleReminders();
             }
         }
+
+        public List<Reminder> Search(ReminderSearch search, ulong serverID)
+        {
+            ReminderState state;
+            TryGetValue(serverID, out state);
+
+            return state.Search(search);
+
+        }
+
     }
 
-    public class ReminderState : EngineState
+    public class ReminderState : ServerEngineState
     {
         /// <summary>
         /// ID of the next reminder that is created
@@ -119,12 +140,17 @@ namespace DiscordBot.Engines
         /// <summary>
         /// A list of scheduled reminders
         /// </summary>
-        public List<Reminder> _reminders { get; set; } = new List<Reminder>();
+        public Dictionary<int, Reminder> _reminders { get; set; } = new Dictionary<int, Reminder>();
 
         /// <summary>
         /// A list of sent reminders
         /// </summary>
         public List<Reminder> _sentReminders { get; set; } = new List<Reminder>();
+
+        /// <summary>
+        /// A list of deleted reminders
+        /// </summary>
+        public List<Reminder> _deletedReminders { get; set; } = new List<Reminder>();
 
         [JsonIgnore]
         public override string StateFile_ { get; } = "Reminders.JSON";
@@ -139,15 +165,39 @@ namespace DiscordBot.Engines
         }
 
         /// <summary>
+        /// Loads reminder tasks into the Task Engine
+        /// </summary>
+        public void LoadTasks()
+        {
+            foreach(Reminder reminder in _reminders.Values)
+            {
+                LoadReminderTask(reminder);
+            }
+        }
+
+        /// <summary>
+        /// Loads reminders as tasks into the task engine
+        /// </summary>
+        /// <param name="reminder"></param>
+        public void LoadReminderTask(Reminder reminder)
+        {
+            ReminderTask reminderTask = new ReminderTask(ServerID, reminder);
+            if (!TaskEngine.CurrentEngine.HasTask(reminderTask.TaskID))
+            {
+                TaskEngine.CurrentEngine.AddTask(reminderTask);
+            }
+        }
+
+        /// <summary>
         /// Creates a reminder
         /// </summary>
         /// <param name="message">message of the reminder</param>
         /// <param name="ownerID">Discord ID of the owner</param>
         /// <param name="sendTime">DateTime of when to send the reminder, in server time</param>
         /// <returns>the ID of the created reminder</returns>
-        public int CreateReminder(string message, ulong ownerID, DateTime sendTime)
+        public int CreateReminder(string message, ulong ownerID, DateTime sendTime, Freq frequency = Freq.None, int frequencyFactor = 1)
         {
-            Reminder reminder = new Reminder(_CurrentID, message, ownerID, sendTime);
+            Reminder reminder = new Reminder(_CurrentID, message, ownerID, sendTime, frequency, frequencyFactor);
 
             if (reminder.IsStale())
             {
@@ -161,56 +211,148 @@ namespace DiscordBot.Engines
         }
 
         /// <summary>
+        /// Deletes a Reminder
+        /// </summary>
+        /// <param name="userID"></param>
+        /// <param name="ID"></param>
+        /// <returns></returns>
+        public bool DeleteReminder(ulong userID, int ID)
+        {
+            ///TODO: Add Handling for if the remidner is schduled
+            Reminder reminder;
+            if (_reminders.TryGetValue(ID, out reminder))
+            {
+                if(reminder.OwnerId == userID)
+                {
+                    _reminders.Remove(ID);
+                    _deletedReminders.Add(reminder);
+                    return true;
+                }
+
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Gets User Owned Reminders
+        /// </summary>
+        /// <param name="userID"></param>
+        /// <returns></returns>
+        public List<Reminder> GetUserOwnedReminder(ulong userID)
+        {
+            List<Reminder> reminders = _reminders.Values
+                .Where(x => x.OwnerId == userID)
+                .OrderBy(x => x.SendTime)
+                .ToList();
+
+            return reminders;
+        }
+
+        /// <summary>
+        /// Gets User Subscribed Reminders
+        /// </summary>
+        /// <param name="userID"></param>
+        /// <returns></returns>
+        public List<Reminder> GetUserSubscribedReminder(ulong userID)
+        {
+            List<Reminder> reminders = _reminders.Values
+                .Where(x => x.IsUserSubscribed(userID))
+                .OrderBy(x => x.SendTime)
+                .ToList();
+
+            return reminders;
+        }
+
+        /// <summary>
         /// Adds a reminder to the reminders list and resorts it.
         /// </summary>
         /// <param name="reminder">reminder to add to the list</param>
         private void _addReminder(Reminder reminder)
         {
-            _reminders.Add(reminder);
-            _reminders = _reminders.OrderByDescending(x => x.SendTime).ThenBy(x => x.ID).ToList();
+            _reminders.Add(_CurrentID, reminder);
             _CurrentID++;
             SaveState();
+            LoadReminderTask(reminder);
         }
 
         /// <summary>
         /// Sends a reminder and saves the state
         /// </summary>
-        public void SendReminder()
+        public async Task<bool> SendReminder(int ID)
         {
-            Reminder reminder = _reminders.Last();
-            while (reminder.ReadyToSend())
+            Reminder reminder;
+            if(_reminders.TryGetValue(ID, out reminder))
             {
-                _sendReminder(reminder);
-                reminder = _reminders.Last();
+                await _sendReminder(reminder);
+                return true;
             }
-            SaveState();
+            return false;
         }
 
         /// <summary>
         /// Sends a reminder
         /// </summary>
         /// <param name="reminder"></param>
-        private void _sendReminder(Reminder reminder)
+        private async Task<bool> _sendReminder(Reminder reminder)
         {
-            reminder.Send();
-            _reminders.Remove(reminder);
-            _sentReminders.Add(reminder);
+            try
+            {
+                //TODO: Add Handling for recurring reminders
+                DiscordChannel channel = await ReminderEngine.GetReminderChannel(ServerID);
+
+                await channel.SendMessageAsync(reminder.ReminderMessage());
+
+                _reminders.Remove(reminder.ID);
+                _sentReminders.Add(reminder);
+                SaveState();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
         }
 
         /// <summary>
         /// Sends all of the stale reminders
         /// </summary>
-        public void SendStaleReminders()
+        public async void SendStaleReminders()
         {
-            List<Reminder> staleReminders = _reminders.Where(x => x.IsStale()).ToList();
+            List<Reminder> staleReminders = _reminders.Values.Where(x => x.IsStale()).ToList();
 
             foreach (Reminder reminder in staleReminders)
             {
-                reminder.Send();
-                _reminders.Remove(reminder);
-                _sentReminders.Add(reminder);
+                await _sendReminder(reminder);
             }
-            SaveState();
+        }
+
+        /// <summary>
+        /// Gets a list of all reminders
+        /// </summary>
+        /// <returns></returns>
+        public List<Reminder> GetReminders()
+        {
+            return _reminders.Values.ToList();
+        }
+
+        /// <summary>
+        /// Searches for reminders using the criteria in a reminder search object
+        /// </summary>
+        /// <param name="searchParams"></param>
+        /// <returns></returns>
+        public List<Reminder> Search(ReminderSearch searchParams)
+        {
+            return Search(searchParams.SearchFunction());
+        }
+
+        /// <summary>
+        /// Searches for reminders where a specific criteria is true
+        /// </summary>
+        /// <param name="func">delegate function where the input parameter is a reminder and the output is a boolean if the reminder should be included</param>
+        /// <returns></returns>
+        public List<Reminder> Search(Func<Reminder, bool> func)
+        {
+            return GetReminders().Where(x => func(x)).ToList();
         }
 
         /// <summary>
@@ -221,7 +363,7 @@ namespace DiscordBot.Engines
         {
             List<ValidationWarnings> warnings = new List<ValidationWarnings>();
 
-            if (_reminders.Where(x => x.Sent).ToList().Count() > 0)
+            if (_reminders.Values.Where(x => x.Sent).ToList().Count() > 0)
             {
                 warnings.Add(ValidationWarnings.UnsentSentReminders);
             }

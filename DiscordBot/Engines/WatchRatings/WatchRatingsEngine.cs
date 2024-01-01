@@ -69,7 +69,7 @@ namespace DiscordBot.Engines
             {
                 serverStates.Remove(serverID);
             }
-            state = EngineState.Load<WatchRatingsEngineState>(new WatchRatingsEngineState(serverID));
+            state = ServerEngineState.Load<WatchRatingsEngineState>(new WatchRatingsEngineState(serverID));
             serverStates.Add(serverID, state);
         }
 
@@ -699,7 +699,7 @@ namespace DiscordBot.Engines
         #endregion
     }
 
-    public class WatchRatingsEngineState : EngineState
+    public class WatchRatingsEngineState : ServerEngineState
     {
         public Dictionary<ulong, WatchEntry> WatchEntries = new Dictionary<ulong, WatchEntry>();
 

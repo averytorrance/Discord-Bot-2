@@ -151,23 +151,26 @@ namespace DiscordBot
             {
                 return;
             }
-
-            LocalUserEngine userEngine = new LocalUserEngine();
             
-            LocalUser user = new LocalUser(duser);
-            if (!userEngine.UserExists(user))
+            DiscordUserEngine userEngine = new DiscordUserEngine();
+            if (!userEngine.UserExists(e.Author.Id))
             {
-                userEngine.CreateUser(user);
+                userEngine.CreateUser(e.Author);
             }
+
+            DiscordServerEngine serverEngine = new DiscordServerEngine(e.Guild);
+            if (!serverEngine.HasServerUser(e.Author.Id))
+            {
+                serverEngine.CreateUser(e.Author.Id);
+            }
+            ServerUser user = serverEngine.GetServerUser(e.Author.Id);
 
             if (BlackListEngine.IsBlackListed(e.Message.Content))
             {
                 DiscordEmoji dollar = DiscordEmoji.FromUnicode("💸");
                 await e.Message.CreateReactionAsync(dollar);
 
-                user = userEngine.GetUser(user.UserID, user.ServerID);
-                user.AddToDebt();
-                userEngine.UpdateUser(user);
+                serverEngine.AddDebt(user.ID);
             }
             /*if (WatchPlanEngine.IsWatchPlanChannelMessage(e.Message))
             {
@@ -244,16 +247,21 @@ namespace DiscordBot
         /// <returns></returns>
         private static async Task UserJoinedHandler(DiscordClient sender, GuildMemberAddEventArgs e)
         {
-            LocalUser newUser = new LocalUser(e.Member);
-            LocalUserEngine userEngine = new LocalUserEngine();
-            
-            if (!userEngine.UserExists(newUser))
+            DiscordUserEngine userEngine = new DiscordUserEngine();
+            if (!userEngine.UserExists(e.Member.Id))
             {
-                userEngine.CreateUser(newUser);
+                userEngine.CreateUser(e.Member);
             }
             else
             {
-                userEngine.UpdateUserAvatar(newUser);
+                userEngine.UpdateUserAvatar(e.Member);
+            }
+
+            DiscordServerEngine serverEngine = new DiscordServerEngine(e.Guild);
+            ServerUser user = serverEngine.GetServerUser(e.Member.Id);
+            if (user == null)
+            {
+                serverEngine.CreateUser(e.Member.Id);
             }
         }
 
