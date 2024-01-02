@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using DSharpPlus.Entities;
 using DiscordBot.Config;
 using DiscordBot.UserProfile;
-using System.IO;
 using Newtonsoft.Json;
 using DSharpPlus;
 
@@ -24,6 +22,11 @@ namespace DiscordBot.Engines
         /// </summary>
         public ulong ID { get; private set; }
 
+        /// <summary>
+        /// Bot Chennel ID
+        /// </summary>
+        public ulong BotChannelID { get; private set; }
+
         public override Type EngineStateType { get; } = typeof(DiscordServerEngineState);
 
         public DiscordServerEngine(DiscordGuild server)
@@ -31,6 +34,9 @@ namespace DiscordBot.Engines
             Server = server;
             ID = server.Id;
             Load(ID);
+
+            ServerConfig config = ServerConfig.GetServerConfig(ID);
+            BotChannelID = config.BotChannelID;
         }
 
         /// <summary>
@@ -201,6 +207,31 @@ namespace DiscordBot.Engines
         public static bool IsAdmin(DiscordMember user)
         {
             return user.Permissions.HasFlag(Permissions.Administrator);
+        }
+
+        /// <summary>
+        /// Sends a message to the bot channel
+        /// </summary>
+        /// <param name="message"></param>
+        public async void SendBotMessage(DiscordMessageBuilder message)
+        {
+            DiscordChannel channel = await GetBotChannel();
+            await channel.SendMessageAsync(message);
+        }
+
+        /// <summary>
+        /// Sends a message to the bot channel
+        /// </summary>
+        /// <param name="message"></param>
+        public async void SendBotMessage(string message)
+        {
+            DiscordChannel channel = await GetBotChannel();
+            await channel.SendMessageAsync(message);
+        }
+
+        private async Task<DiscordChannel> GetBotChannel()
+        {
+            return await Program.Client.GetChannelAsync(BotChannelID);
         }
 
     }

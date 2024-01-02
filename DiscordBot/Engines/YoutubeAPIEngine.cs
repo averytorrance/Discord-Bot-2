@@ -1,14 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using DiscordBot.Config;
 using Newtonsoft.Json;
 
 namespace DiscordBot.Engines
 {
-    class YoutubeAPIEngine : APIEngine
+    public class YoutubeAPIEngine : APIEngine
     {
         private static Dictionary<ulong, YoutubeEngineState> serverStates = new Dictionary<ulong, YoutubeEngineState>();
 
@@ -73,7 +71,9 @@ namespace DiscordBot.Engines
         /// <summary>
         /// List of video IDs that have been sent
         /// </summary>
-        public List<string> VideoIDs;
+        public List<string> VideoIDs = new List<string>();
+
+        public List<string> SubscribedChannels = new List<string>();
 
 
         [JsonIgnore]

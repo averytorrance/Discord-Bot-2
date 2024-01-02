@@ -1,16 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using DiscordBot.Models;
 using Newtonsoft.Json;
-using System.IO;
 using DiscordBot.Config;
 using DSharpPlus.Entities;
 using DiscordBot.Engines.Tasks;
 using DiscordBot.Classes;
-using DiscordBot.UserProfile;
 
 namespace DiscordBot.Engines
 {

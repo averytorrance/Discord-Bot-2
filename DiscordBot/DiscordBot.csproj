@@ -200,11 +200,9 @@
     <Compile Include="Engines\Tasks\ChristmasReminderTask.cs" />
     <Compile Include="Engines\Tasks\HealthCheckTask.cs" />
     <Compile Include="Engines\Tasks\ReminderTask.cs" />
-    <Compile Include="Engines\FileEngine.cs" />
     <Compile Include="Engines\JSONEngine.cs" />
     <Compile Include="Engines\Reminders\ReminderEngine.cs" />
     <Compile Include="Engines\Games\RouletteEngine.cs" />
-    <Compile Include="Engines\SQLEngine.cs" />
     <Compile Include="Engines\Polling\TaskEngine.cs" />
     <Compile Include="Engines\Tasks\WatchRatingsAddMissingEntriesTask.cs" />
     <Compile Include="Engines\Tasks\YoutubeTask.cs" />
