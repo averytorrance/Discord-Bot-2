@@ -31,6 +31,11 @@ namespace DiscordBot.Classes
 		/// <param name="frequencyFactor"></param>
 		public Reminder(int id, string message, ulong ownerId, DateTime sendTime, Freq frequency = Freq.None, int frequencyFactor = 1)
 		{
+			if (sendTime.Kind != DateTimeKind.Utc)
+			{
+				throw new Exception("Attempted to create a reminder with a non UTC DateKind");
+			}
+
 			this.ID = id;
 			this.Message = message;
 			this.OwnerId = ownerId;

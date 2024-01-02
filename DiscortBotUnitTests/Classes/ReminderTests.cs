@@ -7,7 +7,26 @@ namespace DiscortBotUnitTests.Classes
     [TestClass]
     public class ReminderTests
     {
+        #region Constructor
         
+        [TestMethod]
+        [ExpectedException(typeof(Exception), "Attempted to create a reminder with a non UTC DateKind")]
+        public void Constructor_NonUTCInput()
+        {
+            Reminder reminder = new Reminder(1, "Test", 1, DateTime.Now);
+        }
+
+        [TestMethod]
+        public void Constructor_UTCInput()
+        {
+            Reminder reminder = new Reminder(1, "Test", 1, DateTime.UtcNow);
+            // No Exception means this passed
+        }
+
+        #endregion
+
+        #region IsStale and IsReady
+
         [TestMethod]
         public void IsStale_False()
         {
@@ -48,7 +67,7 @@ namespace DiscortBotUnitTests.Classes
             Assert.IsTrue(reminder.ReadyToSend());
         }
 
-
+        #endregion
 
     }
 }
