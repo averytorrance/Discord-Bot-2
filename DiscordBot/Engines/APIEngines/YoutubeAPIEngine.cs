@@ -19,6 +19,16 @@ namespace DiscordBot.Engines
         }
 
         /// <summary>
+        /// Gets the API Key
+        /// </summary>
+        /// <returns></returns>
+        public override string GetAPIKey()
+        {
+            BotConfig configJsonFile = BotConfig.GetConfig();
+            return configJsonFile.YoutubeAPIKey;
+        }
+
+        /// <summary>
         /// The URL to watch a youtube video
         /// </summary>
         public static string YoutubeVideoURL = "https://www.youtube.com/watch?v=";
@@ -42,16 +52,6 @@ namespace DiscordBot.Engines
         private string _SearchYoutubeChannelVideos(string channelID)
         {
             return $"search?part=snippet&channelId={channelID}&maxResults=4&order=date&type=video&key={GetAPIKey()}";
-        }
-
-        /// <summary>
-        /// Gets the API Key
-        /// </summary>
-        /// <returns></returns>
-        public override string GetAPIKey()
-        {
-            BotConfig configJsonFile = BotConfig.GetConfig();
-            return configJsonFile.YoutubeAPIKey;
         }
 
         /// <summary>

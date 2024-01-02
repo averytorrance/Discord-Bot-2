@@ -69,6 +69,21 @@ namespace DiscordBot.Commands
             await ctx.Message.RespondAsync(url);
         }
 
+        /// <summary>
+        /// Gets tje astronomy picture of the day
+        /// </summary>
+        /// <param name="ctx">command context</param>
+        /// <returns></returns>
+        [Command("astronomy")]
+        public async Task astronomy(CommandContext ctx)
+        {
+            NASAEngine engine = new NASAEngine();
+
+            await ctx.Message.RespondAsync(engine.GetAPOD().ToString());
+        }
+
+
+
 
 
 

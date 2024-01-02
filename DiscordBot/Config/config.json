@@ -2,5 +2,6 @@
   "Token": "token",
   "Prefix": "!",
   "YoutubeAPIKey": "",
+  "NasaAPIKey":  "",
   "UserDirectory": "H:\\Users\\avery\\Desktop\\Discord Bot\\Bot-Tutorial-Code-Template-master\\bin\\Debug\\UserInfo.json"
 }

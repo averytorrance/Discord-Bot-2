@@ -27,6 +27,11 @@ namespace DiscordBot.Config
         public string YoutubeAPIKey { get; set; }
 
         /// <summary>
+        /// API Key for Nasa APIs
+        /// </summary>
+        public string NasaAPIKey { get; set; }
+
+        /// <summary>
         /// Filename to save the configuration to
         /// </summary>
         [JsonIgnore]

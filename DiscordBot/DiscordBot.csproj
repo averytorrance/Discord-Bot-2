@@ -192,8 +192,9 @@
     <Compile Include="Engines\Abstract Classes and Interfaces\IEngine.cs" />
     <Compile Include="Engines\Abstract Classes and Interfaces\IServerEngine.cs" />
     <Compile Include="Engines\Abstract Classes and Interfaces\ITask.cs" />
-    <Compile Include="Engines\DuckEngine.cs" />
-    <Compile Include="Engines\YoutubeAPIEngine.cs" />
+    <Compile Include="Engines\APIEngines\NASAEngine.cs" />
+    <Compile Include="Engines\APIEngines\DuckEngine.cs" />
+    <Compile Include="Engines\APIEngines\YoutubeAPIEngine.cs" />
     <Compile Include="Engines\BlackListEngine.cs" />
     <Compile Include="Engines\DiscordServerEngine.cs" />
     <Compile Include="Engines\Tasks\ArchiveWatchRatingsTask.cs" />
