@@ -185,7 +185,7 @@ namespace DiscordBot.Classes
 		/// <returns></returns>
 		public bool IsStale()
         {
-			return SendTime.AddMinutes(1) < DateTime.UtcNow;
+			return SendTime.AddMinutes(3) < DateTime.UtcNow;
         }
 
 		/// <summary>
@@ -194,7 +194,7 @@ namespace DiscordBot.Classes
 		/// <returns></returns>
 		public bool ReadyToSend()
         {
-			return IsStale();
+			return SendTime <= DateTime.UtcNow;
         }
 
 		/// <summary>

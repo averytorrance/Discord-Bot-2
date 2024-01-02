@@ -15,7 +15,7 @@ namespace DiscordBot.WatchRatings
         public string Name;
         public int? Year;
         public Dictionary<ulong, double> Ratings = new Dictionary<ulong, double>();
-        public List<string> Keys;
+        public List<string> Keys = new List<string>();
         public bool IsTV = false;
         public bool HasValidationWarning = false;
         public bool IsMerged = false;
@@ -30,7 +30,7 @@ namespace DiscordBot.WatchRatings
         /// <returns></returns>
         public bool Equals(WatchEntry otherEntry)
         {
-            return MessageID == otherEntry.MessageID;
+            return MessageID == otherEntry.MessageID && ServerID == otherEntry.ServerID;
         }
 
         /// <summary>
@@ -42,7 +42,7 @@ namespace DiscordBot.WatchRatings
             string archived = "";
             if (IsArchived())
             {
-                archived = "[Archived]";
+                archived = "[Archived] ";
             }
             if (Year != null)
             {
@@ -71,13 +71,19 @@ namespace DiscordBot.WatchRatings
 
             DiscordUserEngine userEngine = new DiscordUserEngine();
             string scores = "";
+
+            if(Ratings.Count == 0)
+            {
+                return $"{title}\nNo Ratings\n";
+            }
+
             foreach (ulong userID in Ratings.Keys)
             {
                 DUser user = userEngine.GetUser(userID);
                 double rating = GetUserRating(userID);
                 if (user == null)
                 {
-                    scores = $"{scores}Username: N/A  {rating}\n";
+                    scores = $"{scores}Username: N/A   {rating}\n";
                 }
                 else
                 {
@@ -163,7 +169,6 @@ namespace DiscordBot.WatchRatings
             }
 
             entries = entries.OrderBy(x => x.EntryTime).ToList();
-
             WatchEntry baseEntry = entries.First();
 
             //TODO; Merge Keys
@@ -174,12 +179,23 @@ namespace DiscordBot.WatchRatings
                 Name = baseEntry.Name,
                 Year = baseEntry.Year,
                 IsTV = baseEntry.IsTV,
-                IsMerged = true
+                IsMerged = true,
+                Ratings = baseEntry.Ratings
             };
 
             //Merge ratings and fill in null year if it is filled in during a later entry
             foreach (WatchEntry entry in entries)
             {
+                if (mergedEntry.Equals(entry))
+                {
+                    continue;
+                }
+
+                if(!WatchEntry.ShouldMerge(mergedEntry, entry))
+                {
+                    throw new Exception("Attempted to merge non-mergable entries");
+                }
+
                 if (mergedEntry.Year == null && entry.Year != null)
                 {
                     mergedEntry.Year = entry.Year;
@@ -216,12 +232,14 @@ namespace DiscordBot.WatchRatings
         public static bool ShouldMerge(WatchEntry originalEntry, WatchEntry newEntry)
         {
             bool DifferentIDs = originalEntry.MessageID != newEntry.MessageID;
+            bool SameServerIDs = originalEntry.ServerID == newEntry.ServerID;
             bool SameTitle = StringUtils.StringSimiliar(originalEntry.Name, newEntry.Name);
             bool SameYear = originalEntry.Year == newEntry.Year;
             bool HasNullYear = (originalEntry.Year == null) || (newEntry.Year == null);
             bool SameType = originalEntry.IsTV == newEntry.IsTV;
 
-            return DifferentIDs && SameTitle && SameType && (HasNullYear || SameYear);
+            return SameServerIDs && DifferentIDs && SameTitle 
+                && SameType && (HasNullYear || SameYear);
         }
         #endregion
 

@@ -165,8 +165,6 @@ namespace DiscordBot.Commands.SlashCommands
                 result = "No Results.";
             }
 
-            
-
             response.WithContent(result);
 
             await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, response);
