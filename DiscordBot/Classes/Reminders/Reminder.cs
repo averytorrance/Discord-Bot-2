@@ -68,6 +68,15 @@ namespace DiscordBot.Classes
 		}
 
 		/// <summary>
+		/// Metadata string for the reminder
+		/// </summary>
+		/// <returns></returns>
+		public string ReminderInformation()
+        {
+			return $"ID: {ID}\n";
+        }
+
+		/// <summary>
 		/// ToString representation, with added information on if the user is subscribed to the reminder
 		/// </summary>
 		/// <param name="id"></param>
@@ -168,11 +177,11 @@ namespace DiscordBot.Classes
             switch (Frequency)
             {
 				case Freq.None: return;
-				case Freq.Hour: SendTime.AddHours(FrequencyFactor); break;
-				case Freq.Day: SendTime.AddDays(FrequencyFactor); break;
-				case Freq.Week: SendTime.AddDays(7* FrequencyFactor); break;
-				case Freq.Month: SendTime.AddMonths(FrequencyFactor); break;
-				case Freq.Year: SendTime.AddYears(FrequencyFactor); break;
+				case Freq.Hour: SendTime = SendTime.AddHours(FrequencyFactor); break;
+				case Freq.Day: SendTime = SendTime.AddDays(FrequencyFactor); break;
+				case Freq.Week: SendTime = SendTime.AddDays(7* FrequencyFactor); break;
+				case Freq.Month: SendTime = SendTime.AddMonths(FrequencyFactor); break;
+				case Freq.Year: SendTime = SendTime.AddYears(FrequencyFactor); break;
 			}
 
 			//If a reminder is stale, update it until it is no longer stale

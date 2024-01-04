@@ -81,11 +81,5 @@ namespace DiscordBot.Commands
 
             await ctx.Message.RespondAsync(engine.GetAPOD().ToString());
         }
-
-
-
-
-
-
     }
 }

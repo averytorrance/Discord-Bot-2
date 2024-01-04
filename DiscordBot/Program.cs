@@ -16,6 +16,7 @@ using DSharpPlus.SlashCommands;
 using DiscordBot.Assets;
 using DSharpPlus.CommandsNext.Exceptions;
 using DSharpPlus.SlashCommands.EventArgs;
+using DiscordBot.Engines.Tasks;
 
 namespace DiscordBot
 {
@@ -35,7 +36,6 @@ namespace DiscordBot
             BotConfig configJsonFile = BotConfig.GetConfig();
             BlackList = new BlackListEngine();
 
-
             //2. Setting up the Bot Configuration
             var discordConfig = new DiscordConfiguration()
             {
@@ -53,6 +53,7 @@ namespace DiscordBot
             {
                 Timeout = TimeSpan.FromMinutes(2)
             });
+            _InitalizeEngines();
 
             //5. Set up the Task Handler Ready event
             Client.Ready += OnClientReady;
@@ -96,8 +97,6 @@ namespace DiscordBot
             //8. Connect to get the Bot online
             await Client.ConnectAsync();
 
-            _InitalizeEngines();
-
             await Task.Delay(-1);
         }
 
@@ -111,15 +110,12 @@ namespace DiscordBot
         /// </summary>
         private static void _InitalizeEngines()
         {
-            //TODO: Turn on Watch Plan Engine. Fix issues with deleted messages
-            //TODO: Initialize some sort of poller
-            //TODO: Add tasks from reminder engine stats to the poller
-            new ReminderEngine();
-            new WatchRatingsEngine();
-            //new WatchPlanEngine();
-
             new TaskEngine();
             TaskEngine.CurrentEngine.Start();
+
+            new ReminderEngine();
+            new WatchRatingsEngine();
+            new WatchPlanEngine();
         }
 
         /// <summary>
@@ -135,6 +131,8 @@ namespace DiscordBot
             ReminderEngine.CurrentEngine.SendStaleReminders(e.Guild.Id);
             WatchRatingsEngine.CurrentEngine.StartUp(e.Guild.Id);
             //WatchPlanEngine.CurrentEngine.Load(e.Guild.Id);
+
+            TaskEngine.CurrentEngine.AddTask(new ChristmasReminderTask(e.Guild.Id));
         }
 
         /// <summary>

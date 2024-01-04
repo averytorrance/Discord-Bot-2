@@ -3,6 +3,7 @@ using DSharpPlus.CommandsNext.Attributes;
 using System.Threading.Tasks;
 using DiscordBot.Config;
 using DiscordBot.Assets;
+using DiscordBot.Engines;
 
 namespace DiscordBot.Commands.AdminCommands
 {
@@ -67,6 +68,19 @@ namespace DiscordBot.Commands.AdminCommands
             ServerConfig config = ServerConfig.GetServerConfig(ctx.Guild.Id);
             config.ReminderChannelID = channelID;
             await _saveConfig(ctx, config);
+        }
+
+
+        /// <summary>
+        /// Selects a random item from a list of input items
+        /// </summary>
+        /// <param name="ctx">command context</param>
+        /// <returns></returns>
+        [Command]
+        [RequireUserPermissions(DSharpPlus.Permissions.Administrator)]
+        public async Task ViewTaskQueue(CommandContext ctx)
+        {
+            await ctx.RespondAsync(TaskEngine.CurrentEngine.GetTaskList(ctx.Channel.GuildId));
         }
 
         /// <summary>

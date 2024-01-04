@@ -3,6 +3,7 @@ using DSharpPlus.Entities;
 using DSharpPlus.SlashCommands;
 using System;
 using DiscordBot.Engines;
+using DiscordBot.Classes;
 
 namespace DiscordBot.UserProfile
 {
@@ -96,7 +97,7 @@ namespace DiscordBot.UserProfile
         /// <returns></returns>
         public TimeZoneInfo TimeZone()
         {
-            return TimeZoneInfo.FindSystemTimeZoneById(_timezone.GetName());
+            return Time.TimeZone(_timezone);
         }
 
         /// <summary>
@@ -114,7 +115,7 @@ namespace DiscordBot.UserProfile
         /// <returns></returns>
         public DateTime LocalTime(DateTime time)
         {
-            return TimeZoneInfo.ConvertTime(time, TimeZone());
+            return Time.ConvertTime(time, _timezone);
         }
 
         public bool SetAddress(string address)
@@ -274,17 +275,5 @@ namespace DiscordBot.UserProfile
         }
     }
 
-    public enum TimeZones
-    {
-        [ChoiceName("Central Standard Time")]
-        CST,
-        [ChoiceName("Eastern Standard Time")]
-        EST,
-        [ChoiceName("Mountain Standard Time")]
-        MST,
-        [ChoiceName("Pacific Standard Time")]
-        PST,
-        [ChoiceName("UTC")]
-        UTC,
-    }
+
 }

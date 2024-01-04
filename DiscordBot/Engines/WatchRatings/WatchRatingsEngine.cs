@@ -8,6 +8,7 @@ using DiscordBot.Config;
 using System.Threading;
 using DiscordBot.WatchRatings;
 using DiscordBot.Classes;
+using DiscordBot.Engines.Tasks;
 
 namespace DiscordBot.Engines
 {
@@ -53,9 +54,7 @@ namespace DiscordBot.Engines
         {
             Load(serverID);
             await AddMissingMessages(serverID);
-
-            //The following is too performance intensive to do on startup.
-            //await ArchiveMissingMessages(serverID);
+            TaskEngine.CurrentEngine.AddTask(new ArchiveWatchRatingsTask(serverID));
         }
 
         /// <summary>

@@ -170,6 +170,7 @@
     <Compile Include="Classes\DiscordHandler.cs" />
     <Compile Include="Classes\Poll.cs" />
     <Compile Include="Classes\Reminders\ReminderSearch.cs" />
+    <Compile Include="Classes\Time.cs" />
     <Compile Include="Classes\UserProfile\DiscordUser.cs" />
     <Compile Include="Classes\Statistics.cs" />
     <Compile Include="Classes\StringUtils.cs" />
@@ -194,6 +195,7 @@
     <Compile Include="Engines\Abstract Classes and Interfaces\ITask.cs" />
     <Compile Include="Engines\APIEngines\NASAEngine.cs" />
     <Compile Include="Engines\APIEngines\DuckEngine.cs" />
+    <Compile Include="Engines\APIEngines\OpenAIEngine.cs" />
     <Compile Include="Engines\APIEngines\YoutubeAPIEngine.cs" />
     <Compile Include="Engines\BlackListEngine.cs" />
     <Compile Include="Engines\DiscordServerEngine.cs" />

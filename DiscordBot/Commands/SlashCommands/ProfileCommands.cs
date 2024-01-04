@@ -4,6 +4,7 @@ using DSharpPlus.SlashCommands;
 using System.Threading.Tasks;
 using DiscordBot.UserProfile;
 using DiscordBot.Engines;
+using DiscordBot.Classes;
 
 namespace DiscordBot.Commands.SlashCommands
 {
