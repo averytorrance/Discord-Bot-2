@@ -290,6 +290,13 @@ namespace DiscordBot
         /// <returns></returns>
         private static async Task SlashCommandErrorHandler(SlashCommandsExtension sender, SlashCommandErrorEventArgs error)
         {
+            if(error.Exception is SlashExecutionChecksFailedException)
+            {
+                DiscordInteractionResponseBuilder message = new DiscordInteractionResponseBuilder(
+                    DiscordMessageAssets.GenerateErrorMessage("You do not have the proper permissions to run this command."));
+                await error.Context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, message);
+                return;
+            }
 
             await error.Context.Channel.SendMessageAsync(DiscordMessageAssets.GenerateErrorMessage(error.Exception));
 

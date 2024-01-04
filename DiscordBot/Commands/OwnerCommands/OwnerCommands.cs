@@ -1,4 +1,5 @@
-﻿using DSharpPlus.CommandsNext;
+﻿using DiscordBot.Engines;
+using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using System.Threading.Tasks;
 
@@ -30,6 +31,18 @@ namespace DiscordBot.Commands
         {
             string term = string.Join(" ", names);
             Program.BlackList.RemoveBlackListTerm(term);
+        }
+
+        /// <summary>
+        /// Selects a random item from a list of input items
+        /// </summary>
+        /// <param name="ctx">command context</param>
+        /// <returns></returns>
+        [Command]
+        [RequireOwner]
+        public async Task ViewTaskQueue(CommandContext ctx)
+        {
+            await ctx.RespondAsync(TaskEngine.CurrentEngine.GetTaskList(ctx.Channel.GuildId));
         }
     }
 }

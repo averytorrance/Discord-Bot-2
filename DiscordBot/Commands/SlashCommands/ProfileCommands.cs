@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using DiscordBot.UserProfile;
 using DiscordBot.Engines;
 using DiscordBot.Classes;
+using DSharpPlus.SlashCommands.Attributes;
 
 namespace DiscordBot.Commands.SlashCommands
 {
@@ -61,6 +62,25 @@ namespace DiscordBot.Commands.SlashCommands
             DiscordServerEngine serverEngine = new DiscordServerEngine(ctx.Guild);
             ServerUser serverUser = serverEngine.GetServerUser(member.Id);
 
+            await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder(serverUser.GenerateProfileMessage()));
+        }
+
+        /// <summary>
+        /// Bills a user
+        /// </summary>
+        /// <param name="ctx"></param>
+        /// <param name="user"></param>
+        /// <param name="bill"></param>
+        /// <returns></returns>
+        [SlashCommand("bill", "Adds an amount to a user's balance owed to the server.")]
+        [SlashRequirePermissionsAttribute(DSharpPlus.Permissions.Administrator)]
+        public async Task Bill(InteractionContext ctx, [Option("User", "The user to bill")] DiscordUser user,
+                                        [Option("Amount", "The amount to bill to the user")] double bill = 1)
+        {
+            DiscordServerEngine engine = new DiscordServerEngine(ctx.Guild);
+            engine.AddDebt(user.Id, bill);
+
+            ServerUser serverUser = engine.GetServerUser(user.Id);
             await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder(serverUser.GenerateProfileMessage()));
         }
     }
