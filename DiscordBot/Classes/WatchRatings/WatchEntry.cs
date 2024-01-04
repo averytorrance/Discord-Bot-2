@@ -174,6 +174,7 @@ namespace DiscordBot.WatchRatings
             //TODO; Merge Keys
             WatchEntry mergedEntry = new WatchEntry()
             {
+                ServerID = baseEntry.ServerID,
                 MessageID = baseEntry.MessageID,
                 EntryTime = baseEntry.EntryTime,
                 Name = baseEntry.Name,
@@ -186,7 +187,9 @@ namespace DiscordBot.WatchRatings
             //Merge ratings and fill in null year if it is filled in during a later entry
             foreach (WatchEntry entry in entries)
             {
-                if (mergedEntry.Equals(entry))
+                //The merge entry starts off with information from the base entry.
+                //No need to merge this. 
+                if (baseEntry.Equals(entry))
                 {
                     continue;
                 }

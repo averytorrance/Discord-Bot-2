@@ -485,6 +485,7 @@ namespace DiscortBotUnitTests.Classes
             int year = 2007;
             WatchEntry originalEntry = new WatchEntry()
             {
+                ServerID = 1,
                 MessageID = 1,
                 Name = name,
                 Year = year,
@@ -492,6 +493,7 @@ namespace DiscortBotUnitTests.Classes
             };
             WatchEntry newEntry = new WatchEntry()
             {
+                ServerID = 1,
                 MessageID = 2,
                 Name = name,
                 Year = year,
@@ -507,6 +509,7 @@ namespace DiscortBotUnitTests.Classes
             int year = 2007;
             WatchEntry originalEntry = new WatchEntry()
             {
+                ServerID = 1,
                 MessageID = 1,
                 Name = "Léon: The Professional",
                 Year = year,
@@ -514,6 +517,7 @@ namespace DiscortBotUnitTests.Classes
             };
             WatchEntry newEntry = new WatchEntry()
             {
+                ServerID = 1,
                 MessageID = 2,
                 Name = "Leon The Professional",
                 Year = year,
@@ -530,6 +534,7 @@ namespace DiscortBotUnitTests.Classes
             int year = 2007;
             WatchEntry originalEntry = new WatchEntry()
             {
+                ServerID = 1,
                 MessageID = 1,
                 Name = name,
                 Year = year,
@@ -537,6 +542,7 @@ namespace DiscortBotUnitTests.Classes
             };
             WatchEntry newEntry = new WatchEntry()
             {
+                ServerID = 1,
                 MessageID = 2,
                 Name = name,
                 IsTV = false
@@ -551,6 +557,7 @@ namespace DiscortBotUnitTests.Classes
             int year = 2007;
             WatchEntry originalEntry = new WatchEntry()
             {
+                ServerID = 1,
                 MessageID = 1,
                 Name = "Léon: The Professional",
                 Year = year,
@@ -558,6 +565,7 @@ namespace DiscortBotUnitTests.Classes
             };
             WatchEntry newEntry = new WatchEntry()
             {
+                ServerID = 1,
                 MessageID = 2,
                 Name = "Leon The Professional",
                 IsTV = false
@@ -575,6 +583,7 @@ namespace DiscortBotUnitTests.Classes
             int year = 2007;
             WatchEntry originalEntry = new WatchEntry()
             {
+                ServerID = 1,
                 MessageID = 1,
                 Name = "Léon: The Professional",
                 Year = year,
@@ -582,6 +591,7 @@ namespace DiscortBotUnitTests.Classes
             };
             WatchEntry newEntry = new WatchEntry()
             {
+                ServerID = 1,
                 MessageID = 2,
                 Name = "The Terminator",
                 Year = year,
@@ -599,6 +609,7 @@ namespace DiscortBotUnitTests.Classes
             ulong id = 1;
             WatchEntry originalEntry = new WatchEntry()
             {
+                ServerID = 1,
                 MessageID = id,
                 Name = name,
                 Year = year,
@@ -606,6 +617,7 @@ namespace DiscortBotUnitTests.Classes
             };
             WatchEntry newEntry = new WatchEntry()
             {
+                ServerID = 1,
                 MessageID = id,
                 Name = name,
                 Year = year,
@@ -621,6 +633,7 @@ namespace DiscortBotUnitTests.Classes
             string name = "The Terminator";
             WatchEntry originalEntry = new WatchEntry()
             {
+                ServerID = 1,
                 MessageID = 1,
                 Name = name,
                 Year = 2009,
@@ -628,6 +641,7 @@ namespace DiscortBotUnitTests.Classes
             };
             WatchEntry newEntry = new WatchEntry()
             {
+                ServerID = 1,
                 MessageID = 2,
                 Name = name,
                 Year = 2010,
@@ -644,6 +658,7 @@ namespace DiscortBotUnitTests.Classes
             int year = 2007;
             WatchEntry originalEntry = new WatchEntry()
             {
+                ServerID = 1,
                 MessageID = 1,
                 Name = name,
                 Year = year,
@@ -651,6 +666,7 @@ namespace DiscortBotUnitTests.Classes
             };
             WatchEntry newEntry = new WatchEntry()
             {
+                ServerID = 1,
                 MessageID = 2,
                 Name = name,
                 Year = year,

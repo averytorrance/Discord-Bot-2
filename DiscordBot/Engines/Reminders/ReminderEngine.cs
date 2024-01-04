@@ -297,9 +297,16 @@ namespace DiscordBot.Engines
                 DiscordChannel channel = await ReminderEngine.GetReminderChannel(ServerID);
 
                 await channel.SendMessageAsync(reminder.ReminderMessage());
-
-                _reminders.Remove(reminder.ID);
-                _sentReminders.Add(reminder);
+                if (!reminder.IsRecurring())
+                {
+                    _reminders.Remove(reminder.ID);
+                    _sentReminders.Add(reminder);
+                }
+                else
+                {
+                    reminder.UpdateSendTime();
+                    LoadReminderTask(reminder);
+                }
                 SaveState();
                 return true;
             }
