@@ -23,9 +23,14 @@ namespace DiscordBot.Engines
         public ulong ID { get; private set; }
 
         /// <summary>
-        /// Bot Chennel ID
+        /// Bot Channel ID
         /// </summary>
         public ulong BotChannelID { get; private set; }
+
+        /// <summary>
+        /// YT Plan to Watch Channel ID
+        /// </summary>
+        public ulong YTPlanToWatchChannelID { get; private set; }
 
         public override Type EngineStateType { get; } = typeof(DiscordServerEngineState);
 
@@ -37,6 +42,18 @@ namespace DiscordBot.Engines
 
             ServerConfig config = ServerConfig.GetServerConfig(ID);
             BotChannelID = config.BotChannelID;
+            YTPlanToWatchChannelID = config.YTPlanToWatchChannelID;
+        }
+
+        /// <summary>
+        /// Gets a discord server engine using a discord server ID
+        /// </summary>
+        /// <param name="serverID"></param>
+        /// <returns></returns>
+        public static async Task<DiscordServerEngine> GetDiscordServerEngine(ulong serverID)
+        {
+            DiscordGuild server = await Program.Client.GetGuildAsync(serverID);
+            return new DiscordServerEngine(server);
         }
 
         /// <summary>
@@ -229,9 +246,32 @@ namespace DiscordBot.Engines
             await channel.SendMessageAsync(message);
         }
 
+        /// <summary>
+        /// Sends a message to the YT Plan to Watch Channel
+        /// </summary>
+        /// <param name="message"></param>
+        public async void SendYTMessage(string message)
+        {
+            DiscordChannel channel = await GetYTPlanToWatchChannel();
+            await channel.SendMessageAsync(message);
+        }
+
+        /// <summary>
+        /// Gets the Bot Channel
+        /// </summary>
+        /// <returns></returns>
         private async Task<DiscordChannel> GetBotChannel()
         {
             return await Program.Client.GetChannelAsync(BotChannelID);
+        }
+
+        /// <summary>
+        /// Gets the YT Plan to Watch Channel
+        /// </summary>
+        /// <returns></returns>
+        private async Task<DiscordChannel> GetYTPlanToWatchChannel()
+        {
+            return await Program.Client.GetChannelAsync(YTPlanToWatchChannelID);
         }
 
     }

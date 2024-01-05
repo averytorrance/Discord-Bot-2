@@ -127,12 +127,14 @@ namespace DiscordBot
         private static async Task GuildAvailableHandler(DiscordClient sender, GuildCreateEventArgs e)
         {
             ///Load Reminder Engine States
-            ReminderEngine.CurrentEngine.Load(e.Guild.Id, true);
-            ReminderEngine.CurrentEngine.SendStaleReminders(e.Guild.Id);
-            WatchRatingsEngine.CurrentEngine.StartUp(e.Guild.Id);
+            ulong serverID = e.Guild.Id;
+            ReminderEngine.CurrentEngine.Load(serverID, true);
+            ReminderEngine.CurrentEngine.SendStaleReminders(serverID);
+            WatchRatingsEngine.CurrentEngine.StartUp(serverID);
             //WatchPlanEngine.CurrentEngine.Load(e.Guild.Id);
-
-            TaskEngine.CurrentEngine.AddTask(new ChristmasReminderTask(e.Guild.Id));
+                   
+            TaskEngine.CurrentEngine.AddTask(new ChristmasReminderTask(serverID));
+            TaskEngine.CurrentEngine.AddTask(new YoutubeTask(serverID));
         }
 
         /// <summary>

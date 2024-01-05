@@ -61,6 +61,21 @@ namespace DiscordBot.Commands.AdminCommands
         /// <returns></returns>
         [Command]
         [RequireUserPermissions(DSharpPlus.Permissions.Administrator)]
+        public async Task SetYTPlanToWatchChannel(CommandContext ctx)
+        {
+            ulong channelID = ctx.Channel.Id;
+            ServerConfig config = ServerConfig.GetServerConfig(ctx.Guild.Id);
+            config.YTPlanToWatchChannelID = channelID;
+            await _saveConfig(ctx, config);
+        }
+
+        /// <summary>
+        /// Selects a random item from a list of input items
+        /// </summary>
+        /// <param name="ctx">command context</param>
+        /// <returns></returns>
+        [Command]
+        [RequireUserPermissions(DSharpPlus.Permissions.Administrator)]
         public async Task SetReminderChannel(CommandContext ctx)
         {
             ulong channelID = ctx.Channel.Id;

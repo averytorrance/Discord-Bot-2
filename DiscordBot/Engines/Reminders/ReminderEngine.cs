@@ -214,12 +214,17 @@ namespace DiscordBot.Engines
         /// <returns></returns>
         public bool DeleteReminder(ulong userID, int ID)
         {
-            ///TODO: Add Handling for if the remidner is schduled
             Reminder reminder;
             if (_reminders.TryGetValue(ID, out reminder))
             {
                 if(reminder.OwnerId == userID)
                 {
+                    ReminderTask reminderTask = new ReminderTask(ServerID, reminder);
+                    if (TaskEngine.CurrentEngine.HasTask(reminderTask.TaskID))
+                    {
+                        TaskEngine.CurrentEngine.RemoveTask(reminderTask);
+                    }
+
                     _reminders.Remove(ID);
                     _deletedReminders.Add(reminder);
                     return true;
@@ -293,7 +298,6 @@ namespace DiscordBot.Engines
         {
             try
             {
-                //TODO: Add Handling for recurring reminders
                 DiscordChannel channel = await ReminderEngine.GetReminderChannel(ServerID);
 
                 await channel.SendMessageAsync(reminder.ReminderMessage());
