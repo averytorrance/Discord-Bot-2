@@ -80,6 +80,11 @@ namespace DiscordBot.Config
         public ulong PlanToWatchChannelID { get; set; }
 
         /// <summary>
+        /// ID for the YT Plan to Watch Channel
+        /// </summary>
+        public ulong YTPlanToWatchChannelID { get; set; }
+
+        /// <summary>
         /// Filename to store server configurations
         /// </summary>
         [JsonIgnore]
@@ -122,6 +127,10 @@ namespace DiscordBot.Config
         /// <returns></returns>
         public bool SaveConfig()
         {
+            if (!Validate())
+            {
+                return false;
+            }
             JSONEngine jsonEngine = new JSONEngine();
             return jsonEngine.OverwriteObjectFile<ServerConfig>(this, FileName());
         }
@@ -181,6 +190,19 @@ namespace DiscordBot.Config
         public string FileName()
         {
             return FileName(ServerID);
+        }
+        
+        /// <summary>
+        /// Returns true if the current server config is valid
+        /// </summary>
+        /// <returns></returns>
+        public bool Validate()
+        {
+            return BotChannelID != WatchRatingsChannelID &&
+                ReminderChannelID != WatchRatingsChannelID &&
+                PlanToWatchChannelID != WatchRatingsChannelID &&
+                YTPlanToWatchChannelID != WatchRatingsChannelID &&
+                BotChannelID != null;
         }
 
     }

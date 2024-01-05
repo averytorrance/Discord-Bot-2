@@ -98,7 +98,7 @@ namespace DiscordBot.Commands.AdminCommands
             }
             else
             {
-                await ctx.Channel.SendMessageAsync(DiscordMessageAssets.GenerateErrorMessage());
+                await ctx.Channel.SendMessageAsync(DiscordMessageAssets.GenerateErrorMessage("Unable to save chanel configuration.", "You probably have a conflicting channel. The Watch ratings channel must be unique."));
             }
         }
     }
