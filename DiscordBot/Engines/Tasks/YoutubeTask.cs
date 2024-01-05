@@ -28,7 +28,7 @@ namespace DiscordBot.Engines.Tasks
         {
             YoutubeAPIEngine engine = new YoutubeAPIEngine();
             engine.SendVideos(ServerID);
-            ExecutionTime.AddMinutes(MinutesToWait);
+            ExecutionTime = ExecutionTime.AddMinutes(MinutesToWait);
             TaskEngine.CurrentEngine.AddTask(this);
         }
 
