@@ -240,20 +240,26 @@ namespace DiscordBot.Engines
         /// Sends a message to the bot channel
         /// </summary>
         /// <param name="message"></param>
-        public async void SendBotMessage(string message)
+        public async Task<bool> SendBotMessage(string message)
         {
+            if(BotChannelID == 0) { return false; }
+
             DiscordChannel channel = await GetBotChannel();
             await channel.SendMessageAsync(message);
+            return true;
         }
 
         /// <summary>
         /// Sends a message to the YT Plan to Watch Channel
         /// </summary>
         /// <param name="message"></param>
-        public async void SendYTMessage(string message)
+        public async Task<bool> SendYTMessage(string message)
         {
+            if (YTPlanToWatchChannelID == 0) { return false; }
+
             DiscordChannel channel = await GetYTPlanToWatchChannel();
             await channel.SendMessageAsync(message);
+            return true;
         }
 
         /// <summary>

@@ -8,7 +8,7 @@ namespace DiscordBot.Engines.Tasks
         public ulong TaskID { get; set ; }
         public DateTime ExecutionTime { get; set; }
 
-        public readonly int MinutesToWait = 30;
+        public readonly int MinutesToWait =180;
 
         /// <summary>
         /// Constructor
@@ -18,7 +18,7 @@ namespace DiscordBot.Engines.Tasks
         {
             ServerID = serverID;
             TaskID = TaskEngine.CurrentEngine.GenerateRandomTaskID();
-            ExecutionTime = DateTime.UtcNow.AddMinutes(1);
+            ExecutionTime = DateTime.UtcNow.AddMinutes(MinutesToWait);
         }
 
         /// <summary>

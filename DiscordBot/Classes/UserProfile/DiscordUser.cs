@@ -169,8 +169,6 @@ namespace DiscordBot.UserProfile
         /// </summary>
         public double Debt { get; set; } = 0;
 
-
-
         /// <summary>
         /// Constructor
         /// </summary>

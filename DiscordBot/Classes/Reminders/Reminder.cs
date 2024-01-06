@@ -84,7 +84,8 @@ namespace DiscordBot.Classes
 		public string ToString(ulong id)
         {
 			string basic = $"ID: {ID}\n" +
-							$"Scheduled: {GetSendTimeUserTimeZone(id)}\n";
+							$"Scheduled: {GetSendTimeUserTimeZone(id)}\n" +
+                            $"Message: {Message}\n";
 
 			if (IsRecurring())
 			{

@@ -25,7 +25,7 @@ namespace DiscordBot.Engines
         /// <summary>
         /// Max Search Results per search
         /// </summary>
-        private int _maxSearch = 5;
+        private int _maxSearch = 3;
 
         /// <summary>
         /// Gets the API Key
@@ -115,10 +115,16 @@ namespace DiscordBot.Engines
             }
 
             DiscordServerEngine engine = await DiscordServerEngine.GetDiscordServerEngine(serverID);
-
+            YoutubeError error;
             foreach (string ytchannel in state.SubscribedChannels)
             {
-                List<YTVideo> videoList = GetMostRecentVideos(ytchannel);
+                List<YTVideo> videoList = GetMostRecentVideos(ytchannel, out error);
+
+                if(error != YoutubeError.None)
+                {
+                    return;
+                }
+
                 foreach(YTVideo video in videoList)
                 {
                     if (state.ShouldAddYTVideo(video))
@@ -151,9 +157,15 @@ namespace DiscordBot.Engines
         /// </summary>
         /// <param name="channelID"></param>
         /// <returns></returns>
-        public List<YTVideo> GetMostRecentVideos(string channelID)
+        public List<YTVideo> GetMostRecentVideos(string channelID, out YoutubeError error)
         {
+            error = YoutubeError.None;
             YoutubeResponse response = GenerateObject(_SearchYoutubeChannelVideos(channelID));
+            if (response.HasError())
+            {
+                response.GetErrorType();
+            }
+
             return (response.items ?? new List<YTVideo>()).ToList();
         }
 
@@ -176,6 +188,13 @@ namespace DiscordBot.Engines
         {
             return base.GenerateObject<YoutubeResponse>(requestURL);
         }
+    }
+
+    public enum YoutubeError
+    {
+        None,
+        QuotaExceeded,
+        Unknown
     }
 
 
@@ -255,6 +274,60 @@ namespace DiscordBot.Engines
         public string regionCode;
 
         public List<YTVideo> items;
+
+        public error _error;
+
+        /// <summary>
+        /// True if the Quota has been exceeded
+        /// </summary>
+        /// <returns></returns>
+        public bool QuotaExceeded()
+        {
+
+            if(HasError() && _error.code == 403 && _error.errors.Count > 0)
+            {
+                return _error.errors.Where(e => e.reason == "quoteExceeded").Any();
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Gets the first error reason
+        /// </summary>
+        /// <returns></returns>
+        public string GetErrorReason()
+        {
+
+            if (HasError() && _error.code == 403 && _error.errors.Count > 0)
+            {
+                return _error.errors.FirstOrDefault().reason;
+            }
+            return "";
+        }
+
+        /// <summary>
+        /// Returns true if an error was returned as a response
+        /// </summary>
+        /// <returns></returns>
+        public bool HasError()
+        {
+            return _error != null;
+        }
+
+        /// <summary>
+        /// Gets the error type.
+        /// </summary>
+        /// <returns></returns>
+        public YoutubeError GetErrorType()
+        {
+            if (QuotaExceeded())
+            {
+                return YoutubeError.QuotaExceeded;
+            }
+
+            Console.WriteLine($"Error encountered when calling youtube API: {GetErrorReason()}");
+            return YoutubeError.Unknown;
+        }
 
     }
 
@@ -359,5 +432,19 @@ namespace DiscordBot.Engines
         public string channelTitle;
         public DateTime publishTime;
     }
+
+    public class error
+    {
+        public int code;
+        public List<eitem> errors = new List<eitem>();
+    }
+
+    public class eitem
+    {
+        public string message;
+        public string domain;
+        public string reason = "";
+    }
+
     #endregion
 }
