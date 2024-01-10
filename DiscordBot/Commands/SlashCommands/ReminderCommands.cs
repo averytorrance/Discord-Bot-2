@@ -147,27 +147,14 @@ namespace DiscordBot.Commands.SlashCommands
                 result = $"{result}\n{reminder.ToString(ctx.User.Id)}";
             }
 
-            DiscordInteractionResponseBuilder response = new DiscordInteractionResponseBuilder();
-
-            if (result.Length > 2000)
+            if (result.Length == 0)
             {
-                string filePath = $"{ServerConfig.ServerDirectory(ctx.Guild.Id)}{DateTime.Now.Ticks}.txt";
-                File.WriteAllText(filePath, result);
-                FileStream file = new FileStream(filePath, FileMode.Open);
-                response.AddFile(file);
-                await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, response);
-                file.Close();
-                File.Delete(filePath);
-                return;
-            }
-            if(result.Length == 0)
-            {
-                result = "No Results.";
+                result = "No responses.";
             }
 
-            response.WithContent(result);
+            DiscordServerEngine engine = new DiscordServerEngine(ctx.Guild);
+            engine.SendInteractionResponse(ctx, result);
 
-            await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, response);
         }
     }
 }

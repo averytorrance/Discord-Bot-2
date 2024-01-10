@@ -119,24 +119,8 @@ namespace DiscordBot.Commands.SlashCommands
                 result = WatchRatingsEngine.CurrentEngine.Search(search, (ulong)ctx.Channel.GuildId);
             }
 
-            DiscordInteractionResponseBuilder response = new DiscordInteractionResponseBuilder();
-
-            if(result.Length > 2000)
-            {
-                string filePath = $"{ServerConfig.ServerDirectory(ctx.Guild.Id)}{DateTime.Now.Ticks}.txt";
-                File.WriteAllText(filePath, result);
-                FileStream file = new FileStream(filePath, FileMode.Open);
-                response.AddFile(file);
-                await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, response);
-                file.Close();
-                File.Delete(filePath);
-                return;
-
-            }
-
-            response.WithContent(result);
-
-            await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, response);
+            DiscordServerEngine engine = new DiscordServerEngine(ctx.Guild);
+            engine.SendInteractionResponse(ctx, result);
         }
 
 
@@ -163,25 +147,9 @@ namespace DiscordBot.Commands.SlashCommands
             }
 
             string result = WatchRatingsEngine.CurrentEngine.ServerStatistics((ulong)ctx.Channel.GuildId, userID, restrictTV);
-            
 
-            DiscordInteractionResponseBuilder response = new DiscordInteractionResponseBuilder();
-
-            if(result.Length > 2000)
-            {
-                string filePath = $"{ServerConfig.ServerDirectory(ctx.Guild.Id)}{DateTime.Now.Ticks}.txt";
-                File.WriteAllText(filePath, result);
-                FileStream file = new FileStream(filePath, FileMode.Open);
-                response.AddFile(file);
-                await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, response);
-                file.Close();
-                File.Delete(filePath);
-                return;
-            }
-
-            response.WithContent(result);
-
-            await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, response);
+            DiscordServerEngine engine = new DiscordServerEngine(ctx.Guild);
+            engine.SendInteractionResponse(ctx, result);
         }
 
         public enum Operator

@@ -47,23 +47,15 @@ namespace DiscordBot.Commands
         [RequireOwner]
         public async Task ViewTaskQueue(CommandContext ctx)
         {
-            DiscordMessageBuilder response = new DiscordMessageBuilder();
             string result = TaskEngine.CurrentEngine.GetTaskList(ctx.Channel.GuildId);
+            DiscordServerEngine engine = new DiscordServerEngine(ctx.Guild);
 
-            if (result.Length > 2000)
+            if(result == "")
             {
-                string filePath = $"{ServerConfig.ServerDirectory(ctx.Guild.Id)}{DateTime.Now.Ticks}.txt";
-                File.WriteAllText(filePath, result);
-                FileStream file = new FileStream(filePath, FileMode.Open);
-                response.AddFile(file);
-                await ctx.RespondAsync(response);
-                file.Close();
-                File.Delete(filePath);
-                return;
+                result = "Queue is empty.";
             }
 
-            response.WithContent(result);
-            await ctx.RespondAsync(response);
+            engine.SendResponse(ctx, result);
         }
     }
 }

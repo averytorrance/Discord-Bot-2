@@ -7,6 +7,9 @@ using DiscordBot.Config;
 using DiscordBot.UserProfile;
 using Newtonsoft.Json;
 using DSharpPlus;
+using DSharpPlus.SlashCommands;
+using DSharpPlus.CommandsNext;
+using System.IO;
 
 namespace DiscordBot.Engines
 {
@@ -278,6 +281,50 @@ namespace DiscordBot.Engines
         private async Task<DiscordChannel> GetYTPlanToWatchChannel()
         {
             return await Program.Client.GetChannelAsync(YTPlanToWatchChannelID);
+        }
+
+        public async void SendInteractionResponse(InteractionContext ctx, string response)
+        {
+            DiscordInteractionResponseBuilder message = new DiscordInteractionResponseBuilder();
+
+            if (response.Length > 2000)
+            {
+                string filePath = $"{ServerConfig.ServerDirectory(ctx.Guild.Id)}{DateTime.Now.Ticks}.txt";
+                File.WriteAllText(filePath, response);
+                FileStream file = new FileStream(filePath, FileMode.Open);
+                message.AddFile(file);
+                await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, message);
+                file.Close();
+                File.Delete(filePath);
+                return;
+            }
+
+
+            message.WithContent(response);
+
+            await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, message);
+        }
+
+        public async void SendResponse(CommandContext ctx, string response)
+        {
+            DiscordMessageBuilder message = new DiscordMessageBuilder();
+
+            if (response.Length > 2000)
+            {
+                string filePath = $"{ServerConfig.ServerDirectory(ctx.Guild.Id)}{DateTime.Now.Ticks}.txt";
+                File.WriteAllText(filePath, response);
+                FileStream file = new FileStream(filePath, FileMode.Open);
+                message.AddFile(file);
+                await ctx.RespondAsync(response);
+                file.Close();
+                File.Delete(filePath);
+                return;
+            }
+
+            message.WithContent(response);
+            await ctx.RespondAsync(message);
+
+
         }
 
     }
