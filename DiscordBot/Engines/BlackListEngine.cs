@@ -10,10 +10,7 @@ namespace DiscordBot.Engines
         /// <summary>
         /// List of blacklisted terms
         /// </summary>
-        private static List<string> _blackListedTerms = new List<string>()
-        {
-            "test"
-        };
+        private static List<string> _blackListedTerms = new List<string>();
 
         /// <summary>
         /// Blacklist file name
