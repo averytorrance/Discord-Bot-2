@@ -15,7 +15,7 @@ namespace DiscordBot.Engines
         /// <summary>
         /// Blacklist file name
         /// </summary>
-        private const string _blackListFile = "BlackList.JSON";
+        private const string _blackListFile = "BotFiles\\BlackList.JSON";
 
         /// <summary>
         /// Constructor and initializes the blacklist.

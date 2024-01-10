@@ -35,7 +35,7 @@ namespace DiscordBot.Config
         /// Filename to save the configuration to
         /// </summary>
         [JsonIgnore]
-        private static string FileName = "config.json";
+        private static string FileName = "BotFiles\\config.json";
         
         /// <summary>
         /// Generates the Config object from the config file
