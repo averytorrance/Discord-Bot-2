@@ -18,7 +18,7 @@ namespace DiscordBot.Engines.Tasks
         {
             ServerID = serverID;
             TaskID = TaskEngine.CurrentEngine.GenerateRandomTaskID();
-            ExecutionTime = DateTime.UtcNow.AddMinutes(MinutesToWait);
+            ExecutionTime = DateTime.UtcNow.AddMinutes(5);
         }
 
         /// <summary>

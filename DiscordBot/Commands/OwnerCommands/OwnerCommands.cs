@@ -1,6 +1,11 @@
-﻿using DiscordBot.Engines;
+﻿using DiscordBot.Config;
+using DiscordBot.Engines;
+using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
+using DSharpPlus.Entities;
+using System;
+using System.IO;
 using System.Threading.Tasks;
 
 namespace DiscordBot.Commands
@@ -42,7 +47,23 @@ namespace DiscordBot.Commands
         [RequireOwner]
         public async Task ViewTaskQueue(CommandContext ctx)
         {
-            await ctx.RespondAsync(TaskEngine.CurrentEngine.GetTaskList(ctx.Channel.GuildId));
+            DiscordMessageBuilder response = new DiscordMessageBuilder();
+            string result = TaskEngine.CurrentEngine.GetTaskList(ctx.Channel.GuildId);
+
+            if (result.Length > 2000)
+            {
+                string filePath = $"{ServerConfig.ServerDirectory(ctx.Guild.Id)}{DateTime.Now.Ticks}.txt";
+                File.WriteAllText(filePath, result);
+                FileStream file = new FileStream(filePath, FileMode.Open);
+                response.AddFile(file);
+                await ctx.RespondAsync(response);
+                file.Close();
+                File.Delete(filePath);
+                return;
+            }
+
+            response.WithContent(result);
+            await ctx.RespondAsync(response);
         }
     }
 }
