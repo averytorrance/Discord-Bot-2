@@ -27,14 +27,5 @@ namespace DiscordBot.Engines.Tasks
             ReminderEngine.CurrentEngine.SendReminder(ServerID, (int)TaskID);
         }
 
-        public void Log()
-        {
-            //TODO
-        }
-
-        public bool ReadyToRun() 
-        {
-            return false;
-        }
     }
 }

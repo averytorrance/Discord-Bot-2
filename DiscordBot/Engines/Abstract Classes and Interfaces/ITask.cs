@@ -22,18 +22,6 @@ namespace DiscordBot.Engines.Tasks
         /// </summary>
         void Execute();
 
-        /// <summary>
-        /// Logs the task after execution
-        /// </summary>
-        void Log();
-
-        /// <summary>
-        /// Returns true if the task should run, false otherwise
-        /// </summary>
-        /// <returns></returns>
-        bool ReadyToRun();
-
-
     }
 
     /// <summary>

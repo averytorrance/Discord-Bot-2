@@ -58,14 +58,5 @@ namespace DiscordBot.Engines.Tasks
             TaskEngine.CurrentEngine.AddTask(this);
         }
 
-        public void Log()
-        {
-            return;
-        }
-
-        public bool ReadyToRun()
-        {
-            return false;
-        }
     }
 }

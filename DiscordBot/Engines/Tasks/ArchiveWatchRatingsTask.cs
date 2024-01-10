@@ -34,14 +34,5 @@ namespace DiscordBot.Engines.Tasks
             await WatchRatingsEngine.CurrentEngine.ArchiveMissingMessages(ServerID);
         }
 
-        public void Log()
-        {
-            return;
-        }
-
-        public bool ReadyToRun()
-        {
-            return false;
-        }
     }
 }

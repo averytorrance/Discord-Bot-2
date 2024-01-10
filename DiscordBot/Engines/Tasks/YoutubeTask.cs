@@ -32,14 +32,5 @@ namespace DiscordBot.Engines.Tasks
             TaskEngine.CurrentEngine.AddTask(this);
         }
 
-        public void Log()
-        {
-            throw new NotImplementedException();
-        }
-
-        public bool ReadyToRun()
-        {
-            throw new NotImplementedException();
-        }
     }
 }
