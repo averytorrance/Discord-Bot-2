@@ -195,7 +195,6 @@
     <Compile Include="Engines\Abstract Classes and Interfaces\ITask.cs" />
     <Compile Include="Engines\APIEngines\NASAEngine.cs" />
     <Compile Include="Engines\APIEngines\DuckEngine.cs" />
-    <Compile Include="Engines\APIEngines\OpenAIEngine.cs" />
     <Compile Include="Engines\APIEngines\YoutubeAPIEngine.cs" />
     <Compile Include="Engines\BlackListEngine.cs" />
     <Compile Include="Engines\DiscordServerEngine.cs" />
