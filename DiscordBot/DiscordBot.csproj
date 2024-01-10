@@ -225,9 +225,6 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="SQLScripts\BuildDatabase.sql" />
-  </ItemGroup>
-  <ItemGroup>
     <Folder Include="Models\Interfaces\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
