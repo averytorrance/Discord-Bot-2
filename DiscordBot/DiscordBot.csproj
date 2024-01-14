@@ -170,6 +170,7 @@
     <Compile Include="Classes\UserProfile\DiscordUser.cs" />
     <Compile Include="Classes\Statistics.cs" />
     <Compile Include="Classes\StringUtils.cs" />
+    <Compile Include="Classes\Reminders\ReminderExceptions.cs" />
     <Compile Include="Classes\WatchRatings\WatchEntry.cs" />
     <Compile Include="Classes\WatchRatings\WatchSearch.cs" />
     <Compile Include="Commands\AdminCommands\ConfigCommands.cs" />

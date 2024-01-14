@@ -123,7 +123,6 @@ namespace DiscordBot.Commands.SlashCommands
             engine.SendInteractionResponse(ctx, result);
         }
 
-
         /// <summary>
         /// Searches the watch list for entries with specific criteria 
         /// </summary>

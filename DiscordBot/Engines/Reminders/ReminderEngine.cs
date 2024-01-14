@@ -78,7 +78,7 @@ namespace DiscordBot.Engines
         /// <param name="frequency"></param>
         /// <param name="frequencyFactor"></param>
         /// <returns>The ID of the new reminder</returns>
-        public int CreateReminder(ulong serverID, string message, ulong ownerID, DateTime sendTime, Freq frequency = Freq.None, int frequencyFactor = 1)
+        public ulong CreateReminder(ulong serverID, string message, ulong ownerID, DateTime sendTime, Freq frequency = Freq.None, int frequencyFactor = 1)
         {
             Load(serverID);
             ReminderState state;
@@ -89,7 +89,7 @@ namespace DiscordBot.Engines
         /// <summary>
         /// Triggers a send reminder for all servers
         /// </summary>
-        public async void SendReminder(ulong serverID, int reminderID)
+        public async void SendReminder(ulong serverID, ulong reminderID)
         {
             ReminderState state;
             if(TryGetValue(serverID, out state))
@@ -121,9 +121,69 @@ namespace DiscordBot.Engines
             TryGetValue(serverID, out state);
 
             return state.Search(search);
-
         }
 
+        /// <summary>
+        /// Subscribes a user to a reminder
+        /// </summary>
+        /// <param name="serverID"></param>
+        /// <param name="userID"></param>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public bool SubscribeReminder(ulong serverID, ulong userID, ulong id)
+        {
+            ReminderState state;
+            bool result = false;
+            if (TryGetValue(serverID, out state))
+            {
+                result = state.Subscribe(userID, id);
+                if (result)
+                {
+                    state.SaveState();
+                }
+            }
+            return result;
+        }
+
+
+        /// <summary>
+        /// Unsubscribes a user from a reminder
+        /// </summary>
+        /// <param name="serverID"></param>
+        /// <param name="userID"></param>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public bool UnsubscribeReminder(ulong serverID, ulong userID, ulong id)
+        {
+            ReminderState state;
+            bool result = false;
+            if (TryGetValue(serverID, out state))
+            {
+                result = state.Unsubscribe(userID, id);
+                if (result)
+                {
+                    state.SaveState();
+                }
+            }
+            return result;
+        }
+
+        /// <summary>
+        /// Deletes a reminder
+        /// </summary>
+        /// <param name="serverID"></param>
+        /// <param name="userID"></param>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public bool DeleteReminder(ulong serverID, ulong userID, ulong id)
+        {
+            ReminderState state;
+            if (TryGetValue(serverID, out state))
+            {
+                return state.DeleteReminder(userID, id);
+            }
+            return false;
+        }
     }
 
     public class ReminderState : ServerEngineState
@@ -131,12 +191,12 @@ namespace DiscordBot.Engines
         /// <summary>
         /// ID of the next reminder that is created
         /// </summary>
-        public int _CurrentID = 0;
+        public ulong _CurrentID = 0;
 
         /// <summary>
         /// A list of scheduled reminders
         /// </summary>
-        public Dictionary<int, Reminder> _reminders { get; set; } = new Dictionary<int, Reminder>();
+        public Dictionary<ulong, Reminder> _reminders { get; set; } = new Dictionary<ulong, Reminder>();
 
         /// <summary>
         /// A list of sent reminders
@@ -185,13 +245,23 @@ namespace DiscordBot.Engines
         }
 
         /// <summary>
+        /// Checks if there is a reminder with ID
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public bool HasReminder(ulong id)
+        {
+            return _reminders.ContainsKey(id);
+        }
+
+        /// <summary>
         /// Creates a reminder
         /// </summary>
         /// <param name="message">message of the reminder</param>
         /// <param name="ownerID">Discord ID of the owner</param>
         /// <param name="sendTime">DateTime of when to send the reminder, in server time</param>
         /// <returns>the ID of the created reminder</returns>
-        public int CreateReminder(string message, ulong ownerID, DateTime sendTime, Freq frequency = Freq.None, int frequencyFactor = 1)
+        public ulong CreateReminder(string message, ulong ownerID, DateTime sendTime, Freq frequency = Freq.None, int frequencyFactor = 1)
         {
             Reminder reminder = new Reminder(_CurrentID, message, ownerID, sendTime, frequency, frequencyFactor);
 
@@ -212,26 +282,71 @@ namespace DiscordBot.Engines
         /// <param name="userID"></param>
         /// <param name="ID"></param>
         /// <returns></returns>
-        public bool DeleteReminder(ulong userID, int ID)
+        public bool DeleteReminder(ulong userID, ulong ID)
         {
-            Reminder reminder;
-            if (_reminders.TryGetValue(ID, out reminder))
+            Reminder reminder = GetReminder(ID);
+            if(reminder.OwnerId == userID)
             {
-                if(reminder.OwnerId == userID)
+                ReminderTask reminderTask = new ReminderTask(ServerID, reminder);
+                if (TaskEngine.CurrentEngine.HasTask(reminderTask.TaskID))
                 {
-                    ReminderTask reminderTask = new ReminderTask(ServerID, reminder);
-                    if (TaskEngine.CurrentEngine.HasTask(reminderTask.TaskID))
-                    {
-                        TaskEngine.CurrentEngine.RemoveTask(reminderTask);
-                    }
-
-                    _reminders.Remove(ID);
-                    _deletedReminders.Add(reminder);
-                    return true;
+                    TaskEngine.CurrentEngine.RemoveTask(reminderTask.TaskID);
                 }
 
+                _reminders.Remove(ID);
+                _deletedReminders.Add(reminder);
+                SaveState();
+                return true;
             }
             return false;
+        }
+
+        /// <summary>
+        /// Unsubcribes a user from a reminder
+        /// </summary>
+        /// <param name="userID"></param>
+        /// <param name="ID"></param>
+        /// <returns></returns>
+        public bool Unsubscribe(ulong userID, ulong ID)
+        {
+            Reminder reminder = GetReminder(ID);
+            if (reminder.OwnerId != userID)
+            {
+                return reminder.UnSubscribe(userID);
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Subscribes a user to a reminder
+        /// </summary>
+        /// <param name="userID"></param>
+        /// <param name="ID"></param>
+        /// <returns></returns>
+        public bool Subscribe(ulong userID, ulong ID)
+        {
+            Reminder reminder = GetReminder(ID);
+            if (reminder.OwnerId != userID)
+            {
+                return reminder.Subscribe(userID);
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Gets a reminder
+        /// </summary>
+        /// <param name="id">ID of the remidner</param>
+        /// <returns></returns>
+        /// <exception cref="ReminderNotFoundException">exception thrown if the reminder is not found</exception>
+        public Reminder GetReminder(ulong id)
+        {
+            Reminder reminder;
+            if(!_reminders.TryGetValue(id, out reminder))
+            {
+                throw new ReminderNotFoundException(ServerID, id);
+            }
+            return reminder;
         }
 
         /// <summary>
@@ -279,7 +394,7 @@ namespace DiscordBot.Engines
         /// <summary>
         /// Sends a reminder and saves the state
         /// </summary>
-        public async Task<bool> SendReminder(int ID)
+        public async Task<bool> SendReminder(ulong ID)
         {
             Reminder reminder;
             if(_reminders.TryGetValue(ID, out reminder))

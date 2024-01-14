@@ -145,6 +145,9 @@ namespace DiscordBot
         /// <returns></returns>
         private static async Task MessageSentHandler(DiscordClient sender, MessageCreateEventArgs e)
         {
+            //TODO: Check if the channel is a watch ratings channel. If so, store the message if it is a valid watch message. 
+            //TODO: Add message update handler for the same case above. 
+            //TODO: If a watch ratings channel message has invalid content, reply with a message. 
             DiscordMember duser;
             e.Guild.Members.TryGetValue(e.Author.Id, out duser);
             if(duser == null)

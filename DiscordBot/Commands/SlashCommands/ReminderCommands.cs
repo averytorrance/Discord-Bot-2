@@ -88,7 +88,7 @@ namespace DiscordBot.Commands.SlashCommands
                 }
                 else
                 {
-                    int ID = ReminderEngine.CurrentEngine.CreateReminder(ctx.Guild.Id, message, ctx.Member.Id, sendTimeUTC, frequency, factor);
+                    ulong ID = ReminderEngine.CurrentEngine.CreateReminder(ctx.Guild.Id, message, ctx.Member.Id, sendTimeUTC, frequency, factor);
                     response.AddEmbed(new DiscordEmbedBuilder()
                     {
                         Title = $"Successfully created reminder {ID}.",
@@ -127,15 +127,12 @@ namespace DiscordBot.Commands.SlashCommands
         public async Task ReminderSearch(InteractionContext ctx, [Option("Search", "Search terms for the search")] string searchTerms = "",
                                                          [Option("SearchSubscriptions", "True to only include subscriptions, false to only show owned reminders, null to include all.")] bool? includeSubs = null,
                                                          [Option("SearchRecurring", "True to only include reoccuring, false to only show single time reminders, null to include all.")] bool? isRecurring = null)
-
-
         {
             ReminderSearch search = new ReminderSearch(ctx.User.Id)
             {
                 SearchSubscriptions = includeSubs,
                 SearchTerm = searchTerms,
                 SearchRecurring = isRecurring
-                
             };
 
             List<Reminder> reminders = ReminderEngine.CurrentEngine.Search(search, (ulong)ctx.Channel.GuildId);
@@ -154,7 +151,131 @@ namespace DiscordBot.Commands.SlashCommands
 
             DiscordServerEngine engine = new DiscordServerEngine(ctx.Guild);
             engine.SendInteractionResponse(ctx, result);
-
         }
+
+        /// <summary>
+        /// Searches the watch list for entries with specific criteria 
+        /// </summary>
+        /// <param name="ctx"></param>
+        /// <returns></returns>
+        [SlashCommand("DeleteReminder", "Deletes a reminder if you are the owner of it.")]
+        public async Task DeleteReminder(InteractionContext ctx, [Option("ReminderID", "ID of reminder to delete.")] long _id)
+        {
+            string message = "";
+            ulong id;
+            try
+            {
+                try
+                {
+                    id = (ulong)_id;
+                }
+                catch
+                {
+                    throw new ReminderNotFoundException();
+                }
+
+                if (ReminderEngine.CurrentEngine.DeleteReminder((ulong)ctx.Channel.GuildId, ctx.Member.Id, id))
+                {
+                    message = $"Reminder {_id} successfully deleted.";
+                }
+                else
+                {
+                    message = "You must be the owner of a reminder to delete it.";
+                }
+            }
+            catch (ReminderNotFoundException)
+            {
+                message = $"Unable to find reminder {_id}. You can use /ReminderSearch to search for your reminders.";
+            }
+            finally
+            {
+                DiscordServerEngine engine = new DiscordServerEngine(ctx.Guild);
+                engine.SendInteractionResponse(ctx, message);
+            }
+        }
+
+        /// <summary>
+        /// Searches the watch list for entries with specific criteria 
+        /// </summary>
+        /// <param name="ctx"></param>
+        /// <returns></returns>
+        [SlashCommand("SubscribeReminder", "Subscribes you to a reminder.")]
+        public async Task SubscribeReminder(InteractionContext ctx, [Option("ReminderID", "ID of reminder to subscribe to.")] long _id)
+        {
+            string message = "";
+            ulong id;
+            try
+            {
+                try
+                {
+                    id = (ulong)_id;
+                }
+                catch
+                {
+                    throw new ReminderNotFoundException();
+                }
+
+                if (ReminderEngine.CurrentEngine.SubscribeReminder((ulong)ctx.Channel.GuildId, ctx.Member.Id, id))
+                {
+                    message = $"Successfully subscribed to reminder {_id}.";
+                }
+                else
+                {
+                    message = "You can not subscribed to a reminder that you are already subscribed to. You can not subscribe to reminders that you own.";
+                }
+            }
+            catch (ReminderNotFoundException)
+            {
+                message = $"Unable to find reminder {_id}. You can use /ReminderSearch to search for your reminders.";
+            }
+            finally
+            {
+                DiscordServerEngine engine = new DiscordServerEngine(ctx.Guild);
+                engine.SendInteractionResponse(ctx, message);
+            }
+        }
+
+        /// <summary>
+        /// Searches the watch list for entries with specific criteria 
+        /// </summary>
+        /// <param name="ctx"></param>
+        /// <returns></returns>
+        [SlashCommand("UnsubscribeReminder", "Unsubscribes you from a reminder.")]
+        public async Task UnsubscribeReminder(InteractionContext ctx, [Option("ReminderID", "ID of reminder to uunsubscribe from.")] long _id)
+        {
+            string message = "";
+            ulong id;
+            try
+            {
+                try 
+                {
+                    id = (ulong)_id;
+                }
+                catch
+                {
+                    throw new ReminderNotFoundException();
+                }
+
+
+                if (ReminderEngine.CurrentEngine.UnsubscribeReminder((ulong)ctx.Channel.GuildId, ctx.Member.Id, id))
+                {
+                    message = $"Successfully unsubscribed from reminder {_id}.";
+                }
+                else
+                {
+                    message = "You must subscribed to a reminder to unsubscribe from it.";
+                }
+            }
+            catch (ReminderNotFoundException)
+            {
+                message = $"Unable to find reminder {_id}. You can use /ReminderSearch to search for your reminders.";
+            }
+            finally
+            {
+                DiscordServerEngine engine = new DiscordServerEngine(ctx.Guild);
+                engine.SendInteractionResponse(ctx, message);
+            }
+        }
+
     }
 }

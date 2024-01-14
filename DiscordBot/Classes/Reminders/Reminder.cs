@@ -10,7 +10,7 @@ namespace DiscordBot.Classes
 {
 	public class Reminder
 	{
-		public int ID { get; set; }
+		public ulong ID { get; set; }
 		public string Message { get; set; }
 		public ulong OwnerId { get; set; }
 		public bool Sent { get; set; } = false;
@@ -29,7 +29,7 @@ namespace DiscordBot.Classes
 		/// <param name="sendTime">send time in UTC</param>
 		/// <param name="frequency"></param>
 		/// <param name="frequencyFactor"></param>
-		public Reminder(int id, string message, ulong ownerId, DateTime sendTime, Freq frequency = Freq.None, int frequencyFactor = 1)
+		public Reminder(ulong id, string message, ulong ownerId, DateTime sendTime, Freq frequency = Freq.None, int frequencyFactor = 1)
 		{
 			if (sendTime.Kind != DateTimeKind.Utc)
 			{

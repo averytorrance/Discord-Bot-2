@@ -24,7 +24,7 @@ namespace DiscordBot.Engines.Tasks
 
         public void Execute()
         {
-            ReminderEngine.CurrentEngine.SendReminder(ServerID, (int)TaskID);
+            ReminderEngine.CurrentEngine.SendReminder(ServerID, TaskID);
         }
 
     }
