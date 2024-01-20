@@ -175,6 +175,7 @@ namespace DiscordBot
 
                 serverEngine.AddDebt(user.ID);
             }
+
             if (WatchRatingsEngine.IsWatchRatingsChannelMessage(e.Message) && !e.Message.Author.IsBot)
             {
                 if (!WatchRatingsEngine.CurrentEngine.IsValidWatchRatingsMessage(e.Message)) 
