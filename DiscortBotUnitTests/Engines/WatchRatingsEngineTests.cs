@@ -297,7 +297,7 @@ namespace DiscordBotUnitTests
         public WatchRatingsEngineState LoadTestData()
         {
             JSONEngine engine = new JSONEngine();
-            WatchRatingsEngineState data = engine.GenerateObject<WatchRatingsEngineState>("WatchRatingsEngineState.json");
+            WatchRatingsEngineState data = engine.GenerateObject<WatchRatingsEngineState>("ServerFiles\\WatchRatingsEngineState.json");
             return data;
         }
 

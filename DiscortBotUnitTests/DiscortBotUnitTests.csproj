@@ -18,4 +18,13 @@
     <ProjectReference Include="..\DiscordBot\DiscordBot.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="BotFiles\Users.JSON">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="ServerFiles\WatchRatingsEngineState.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>
