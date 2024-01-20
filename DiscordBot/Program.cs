@@ -207,7 +207,7 @@ namespace DiscordBot
         /// <returns></returns>
         private static async Task MessageDeleteHandler(DiscordClient sender, MessageDeleteEventArgs e)
         {
-            if (WatchRatingsEngine.IsWatchRatingsChannelMessage(e.Message))
+            if (WatchRatingsEngine.IsWatchRatingsChannelMessage(e.Message) && WatchRatingsEngine.CurrentEngine.IsValidWatchRatingsMessage(e.Message))
             {
                 WatchRatingsEngine.CurrentEngine.UpdateWatchEntry(e.Message);
             }
