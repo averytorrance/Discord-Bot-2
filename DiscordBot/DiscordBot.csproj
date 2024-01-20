@@ -197,6 +197,7 @@
     <Compile Include="Engines\DiscordServerEngine.cs" />
     <Compile Include="Engines\Tasks\ArchiveWatchRatingsTask.cs" />
     <Compile Include="Engines\Tasks\ChristmasReminderTask.cs" />
+    <Compile Include="Engines\Tasks\DeleteMessageTask.cs" />
     <Compile Include="Engines\Tasks\ReminderTask.cs" />
     <Compile Include="Engines\JSONEngine.cs" />
     <Compile Include="Engines\Reminders\ReminderEngine.cs" />

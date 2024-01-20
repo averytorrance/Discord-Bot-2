@@ -302,7 +302,15 @@ namespace DiscordBot.Engines
         /// <param name="message"></param>
         public static bool IsWatchRatingsChannelMessage(DiscordMessage message)
         {
-            return _getWatchChannelID(message.Channel.Guild.Id) == (ulong)message.Channel.Id;
+            try
+            {
+                return _getWatchChannelID(message.Channel.Guild.Id) == (ulong)message.Channel.Id;
+            }
+            catch
+            {
+                return false;
+            }
+            
         }
 
         /// <summary>
@@ -408,6 +416,26 @@ namespace DiscordBot.Engines
                 Thread.Sleep(1000);
             }
             return true;
+        }
+
+        /// <summary>
+        /// Checks if a discord message is a valid watch ratings message
+        /// </summary>
+        /// <returns></returns>
+        public bool IsValidWatchRatingsMessage(DiscordMessage message)
+        {
+            string content = message.Content;
+            return IsValidMovieName(content) || IsValidTVName(content);
+        }
+
+        /// <summary>
+        /// Checks if a message content is valid
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        public bool IsValidMovieName(string name)
+        {
+            return GetMovieYear(name) != null;
         }
 
         /// <summary>
