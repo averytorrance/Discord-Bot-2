@@ -10,6 +10,7 @@ using DiscordBot.Classes;
 using System.Collections.Generic;
 using System.IO;
 using DiscordBot.UserProfile;
+using System.Linq;
 
 namespace DiscordBot.Commands.SlashCommands
 {
@@ -136,6 +137,7 @@ namespace DiscordBot.Commands.SlashCommands
             };
 
             List<Reminder> reminders = ReminderEngine.CurrentEngine.Search(search, (ulong)ctx.Channel.GuildId);
+            reminders = reminders.Select(x => x).OrderBy(x => x.SendTime).ToList();
 
             string result = "";
 
