@@ -183,7 +183,9 @@ namespace DiscordBot
                     string reason = "This is not the correct format for a movie. " +
                         "Please add a release year and make sure the message is of the form \"Movie Name(XXXX)\", where XXXX is the release year or \"TV Show Name(TV XXXX)\", " +
                         "where XXXX is the end date of the show.";
-                    DiscordMessage reply = await e.Message.RespondAsync($"{reason}\n\nThis message will be deleted shortly.");
+
+                    string input = e.Message.Content;
+                    DiscordMessage reply = await e.Message.RespondAsync($"{reason}\n\nYour Input: \"{input}\"\n\nThis message will be deleted shortly.");
                     await e.Message.DeleteAsync(reason);
 
                     TaskEngine.CurrentEngine.AddTask(new DeleteMessageTask(reply, 1));
