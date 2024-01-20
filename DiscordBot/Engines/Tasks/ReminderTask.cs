@@ -11,6 +11,7 @@ namespace DiscordBot.Engines.Tasks
         public ulong ServerID { get; set;  }
 
         public DateTime ExecutionTime { get; set; }
+        public TaskPriority Priority { get; set; } = TaskPriority.Default;
 
         /// <summary>
         /// Constructor

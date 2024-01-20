@@ -18,6 +18,11 @@ namespace DiscordBot.Engines.Tasks
         DateTime ExecutionTime { get; set; }
 
         /// <summary>
+        /// Priority of the Task
+        /// </summary>
+        TaskPriority Priority { get; set; }
+
+        /// <summary>
         /// Run Method
         /// </summary>
         void Execute();
@@ -30,5 +35,11 @@ namespace DiscordBot.Engines.Tasks
     interface IServerTask : ITask
     {
         ulong ServerID { get; set; }
+    }
+
+    public enum TaskPriority
+    {
+        Crucial = 0,
+        Default = 99999
     }
 }

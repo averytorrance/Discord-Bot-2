@@ -66,7 +66,7 @@ namespace DiscordBot.Engines
             {
                 if (IsRunning())
                 {
-                    List<ITask> runnableTasks = _tasks.Where(x => x.ExecutionTime <= DateTime.UtcNow).ToList();
+                    List<ITask> runnableTasks = getRunnableTasks();
 
                     foreach (ITask task in runnableTasks)
                     {
@@ -94,6 +94,15 @@ namespace DiscordBot.Engines
                 }
             }
 
+        }
+
+        /// <summary>
+        /// Gets a list of runnable tasks ordered by priority 
+        /// </summary>
+        /// <returns></returns>
+        public List<ITask> getRunnableTasks()
+        {
+            return _tasks.Where(x => x.ExecutionTime <= DateTime.UtcNow).OrderBy(x => x.Priority).ToList();
         }
 
         /// <summary>
@@ -229,6 +238,15 @@ namespace DiscordBot.Engines
             return results;
         }
 
+        /// <summary>
+        /// Destroys the engine.
+        /// </summary>
+        public void Destroy()
+        {
+            _state = PollerState.Stopped;
+            _destroyTimer();
+            CurrentEngine = null;
+        }
     }
 
     /// <summary>

@@ -1,25 +1,35 @@
 ﻿using System;
+using DiscordBot.Engines;
+using DiscordBot.Engines.Tasks;
 
-namespace DiscordBot.Engines.Tasks
+namespace DiscordBotUnitTests
 {
-    public class YoutubeTask : IServerTask
+    public class TestTask : ITask
     {
-        public ulong ServerID { get; set; }
         public ulong TaskID { get; set ; }
         public DateTime ExecutionTime { get; set; }
 
         public readonly int MinutesToWait =180;
         public TaskPriority Priority { get; set; } = TaskPriority.Default;
 
+        public bool TaskRan { get; set; } = false;
+
         /// <summary>
         /// Constructor
         /// </summary>
         /// <param name="serverID"></param>
-        public YoutubeTask(ulong serverID)
+        public TestTask(DateTime? time = null)
         {
-            ServerID = serverID;
             TaskID = TaskEngine.CurrentEngine.GenerateRandomTaskID();
-            ExecutionTime = DateTime.UtcNow.AddMinutes(5);
+            if(time == null)
+            {
+                ExecutionTime = DateTime.UtcNow.AddMinutes(10);
+            }
+            else 
+            {
+                ExecutionTime = (DateTime)time;
+            }
+            
         }
 
         /// <summary>
@@ -27,10 +37,8 @@ namespace DiscordBot.Engines.Tasks
         /// </summary>
         public void Execute()
         {
-            YoutubeAPIEngine engine = new YoutubeAPIEngine();
-            engine.SendVideos(ServerID);
-            ExecutionTime = ExecutionTime.AddMinutes(MinutesToWait);
-            TaskEngine.CurrentEngine.AddTask(this);
+            TaskRan = true;
+            return;
         }
 
     }
