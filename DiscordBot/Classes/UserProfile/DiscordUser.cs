@@ -200,7 +200,7 @@ namespace DiscordBot.UserProfile
         /// </summary>
         /// <param name="user">a Discord user object</param>
         /// <returns>true if the obejcts are the same person on the same server, false otherwise</returns>
-        public new bool Equals(ServerUser user)
+        public bool Equals(ServerUser user)
         {
             return user.ID == ID && user.ServerID == ServerID;
         }

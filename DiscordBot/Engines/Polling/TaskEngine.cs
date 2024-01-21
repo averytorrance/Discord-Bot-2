@@ -43,7 +43,22 @@ namespace DiscordBot.Engines
             _state = PollerState.Running;
             _timer = new Timer(_pollerMillisecondWait);
             _timer.Elapsed += new ElapsedEventHandler(_runTasks);
-            _timer.Start();
+
+            // Wait until the next minute to start timer
+            try
+            {
+                int millisecondsUntilNextMinute = _pollerMillisecondWait - DateTime.UtcNow.Millisecond;
+                System.Threading.Thread.Sleep(millisecondsUntilNextMinute);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error waiting for next minute:\n {ex.Message} : {ex.StackTrace}");
+            }
+            finally
+            {
+                _timer.Start();
+            }
+            
         }
 
         /// <summary>
@@ -64,11 +79,11 @@ namespace DiscordBot.Engines
         {
             try
             {
-                if (IsRunning())
-                {
-                    List<ITask> runnableTasks = getRunnableTasks();
+                List<ITask> runnableTasks = getRunnableTasks();
 
-                    foreach (ITask task in runnableTasks)
+                foreach (ITask task in runnableTasks)
+                {
+                    if (IsRunning())
                     {
                         try
                         {
@@ -77,8 +92,12 @@ namespace DiscordBot.Engines
                         }
                         catch (Exception ex)
                         {
-
+                            Console.WriteLine($"Error executing task:\n {ex.Message} : {ex.StackTrace}");
                         }
+                    }
+                    else
+                    {
+                        break;
                     }
                 }
             }
@@ -255,7 +274,6 @@ namespace DiscordBot.Engines
     public enum PollerState
     {
         Stopped,
-        StopRequested,
         Running,
         Paused
     }
