@@ -667,7 +667,7 @@ namespace DiscordBot.Engines
             stats = getStats(entries);
 
             results = $"**All Time Results:**\n" +
-                $"Total Watched: {stats.Count}\n{stats.BasicString()}" +
+                $"Total Watched: {entries.Count}\n{stats.BasicString()}" +
                 $"{_generateMinMaxSectionStats(entries, dataFromWatchEntry, stats)}\n";
 
             List<int> years = state.GetAllYears().OrderByDescending(x => x).ToList();
@@ -683,7 +683,7 @@ namespace DiscordBot.Engines
                 stats = getStats(filteredEntries);
 
                 results = $"{results}**{year} Results:**\n" +
-                    $"Total New Watched: {stats.Count}\n{stats.BasicString()}\n" +
+                    $"Total New Watched: {filteredEntries.Count}\n{stats.BasicString()}\n" +
                     $"{_generateMinMaxSectionStats(filteredEntries, dataFromWatchEntry, stats)}\n";   
             }
 
