@@ -25,7 +25,7 @@ namespace DiscordBot.Commands.SlashCommands
                                                         [Option("ReleaseYear", "The year the movie was released")] long releaseYear = -1,
                                                         [Option("User", "Movies that are rated by this user.")] DiscordUser user = null,
                                                         [Option("IsTV", "Restrict search results to movies or TV instances.")] NullableBool isTV = NullableBool.Null,
-                                                        [Option("UserScore", "User score search")] double userScore = -1,
+                                                        [Option("UserScore", "User score search. If no user is input, your user will be used.")] double userScore = -1,
                                                         [Option("Operator", "enum option")] Operator operation = Operator.Equals)
         {
             WatchSearch search = new WatchSearch(){  };
@@ -67,7 +67,17 @@ namespace DiscordBot.Commands.SlashCommands
                 await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder(DiscordMessageAssets.GenerateErrorMessage(error, description)));
                 return;
             }
-            
+
+
+            if (userScore > 0)
+            {
+                search.UserScore = userScore;
+
+                if (user == null)
+                {
+                    user = ctx.User;
+                }
+            }
 
             if (user != null)
             {
@@ -76,11 +86,6 @@ namespace DiscordBot.Commands.SlashCommands
                     user.Id
                 };
                 search.UserIDs = userIDs;
-                if(userScore > 0)
-                {
-                    search.UserScore = userScore;
-                }
-
             }
 
             switch (operation)
