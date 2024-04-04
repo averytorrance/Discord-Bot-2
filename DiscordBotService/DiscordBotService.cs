@@ -18,7 +18,6 @@ namespace BotService
             InitializeComponent();
         }
 
-#if DEBUG
         /// <summary>
         /// Debug start
         /// </summary>
@@ -27,7 +26,6 @@ namespace BotService
             OnStart(null);
             while (true) ;
         } 
-#endif
 
         protected override async void OnStart(string[] args)
         {
