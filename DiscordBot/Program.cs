@@ -20,7 +20,7 @@ using DiscordBot.Engines.Tasks;
 
 namespace DiscordBot
 {
-    public sealed class Program
+    public class Program
     {
         public static DiscordClient Client { get; private set; }
 
@@ -30,7 +30,7 @@ namespace DiscordBot
 
         public static ReminderEngine Reminders { get; private set; }
 
-        static async Task Main(string[] args)
+        public static async Task Main(string[] args)
         {
             //1. Get the details of your config.json file by deserialising it
             BotConfig configJsonFile = BotConfig.GetConfig();
@@ -111,7 +111,7 @@ namespace DiscordBot
         private static void _InitalizeEngines()
         {
             new TaskEngine();
-            TaskEngine.CurrentEngine.Start();
+            //TaskEngine.CurrentEngine.Start();
 
             new ReminderEngine();
             new WatchRatingsEngine();
