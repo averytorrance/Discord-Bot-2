@@ -69,6 +69,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Install.ps1" />
     <Compile Include="DiscordBotService.cs">
       <SubType>Component</SubType>
     </Compile>
