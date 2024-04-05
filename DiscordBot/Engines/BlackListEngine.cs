@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using DiscordBot.Classes;
+using System;
 
 namespace DiscordBot.Engines
 {
@@ -15,7 +16,7 @@ namespace DiscordBot.Engines
         /// <summary>
         /// Blacklist file name
         /// </summary>
-        private const string _blackListFile = "BotFiles\\BlackList.JSON";
+        private static string _blackListFile => $"{AppDomain.CurrentDomain.BaseDirectory}\\BotFiles\\BlackList.JSON";
 
         /// <summary>
         /// Constructor and initializes the blacklist.

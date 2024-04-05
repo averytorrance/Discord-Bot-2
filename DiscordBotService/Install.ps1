@@ -1,1 +1,0 @@
-﻿New-Service -Name "DiscordBotService" -BinaryPathName BotService.exe

@@ -35,7 +35,7 @@ namespace DiscordBot.Config
         /// Filename to save the configuration to
         /// </summary>
         [JsonIgnore]
-        private static string FileName = "BotFiles\\config.json";
+        private static string FileName => $"{AppDomain.CurrentDomain.BaseDirectory}\\BotFiles\\config.json";
         
         /// <summary>
         /// Generates the Config object from the config file
@@ -94,7 +94,7 @@ namespace DiscordBot.Config
         /// File Directory to store server files
         /// </summary>
         [JsonIgnore]
-        private static readonly string _directory = "ServerFiles\\";
+        private static string _directory => $"{AppDomain.CurrentDomain.BaseDirectory}\\ServerFiles\\";
 
         /// <summary>
         /// Gets the Server config for a specific discord server, or generates one if it does not exist

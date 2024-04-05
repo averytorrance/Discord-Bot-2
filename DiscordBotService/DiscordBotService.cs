@@ -1,13 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Diagnostics;
-using System.Linq;
 using System.ServiceProcess;
-using System.Text;
-using System.Threading.Tasks;
-using DiscordBot;
+using DiscordBot.Classes;
 
 namespace BotService
 {
@@ -27,13 +20,22 @@ namespace BotService
             while (true) ;
         } 
 
-        protected override async void OnStart(string[] args)
+        protected override void OnStart(string[] args)
+        {
+            Log.WriteToFile(Log.LogLevel.BotService, $"Service is started at {DateTime.Now}");
+            StartBot(args);
+        }
+
+        private async void StartBot(string[] args)
         {
             await DiscordBot.Program.Main(args);
         }
 
         protected override void OnStop()
         {
+            Log.WriteToFile(Log.LogLevel.BotService,$"Service is stopped at {DateTime.Now}");
         }
+
+
     }
 }

@@ -143,7 +143,7 @@ namespace DiscordBot.Engines
         public List<DUser> Users = new List<DUser>();
 
         [JsonIgnore]
-        public override string StateFile_ { get; } = "BotFiles\\Users.JSON";
+        public override string StateFile_ { get; } = $"{AppDomain.CurrentDomain.BaseDirectory}\\BotFiles\\Users.JSON";
 
     }
 

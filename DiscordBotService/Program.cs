@@ -14,16 +14,17 @@ namespace BotService
         /// </summary>
         static void Main()
         {
-            //DiscordBotService service = new DiscordBotService();
-            //service.OnStart();
-
+#if DEBUG
+            DiscordBotService service = new DiscordBotService();
+            service.OnStart();
+#else
             ServiceBase[] ServicesToRun;
             ServicesToRun = new ServiceBase[]
             {
                 new DiscordBotService()
             };
             ServiceBase.Run(ServicesToRun);
-
+#endif
         }
     }
 }

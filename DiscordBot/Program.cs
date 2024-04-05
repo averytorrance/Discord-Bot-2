@@ -17,6 +17,7 @@ using DiscordBot.Assets;
 using DSharpPlus.CommandsNext.Exceptions;
 using DSharpPlus.SlashCommands.EventArgs;
 using DiscordBot.Engines.Tasks;
+using DiscordBot.Classes;
 
 namespace DiscordBot
 {
@@ -32,72 +33,79 @@ namespace DiscordBot
 
         public static async Task Main(string[] args)
         {
-            //1. Get the details of your config.json file by deserialising it
-            BotConfig configJsonFile = BotConfig.GetConfig();
-            BlackList = new BlackListEngine();
-
-            //2. Setting up the Bot Configuration
-            var discordConfig = new DiscordConfiguration()
+            try
             {
-                Intents = DiscordIntents.All,
-                Token = configJsonFile.Token,
-                TokenType = TokenType.Bot,
-                AutoReconnect = true
-            };
+                //1. Get the details of your config.json file by deserialising it
+                BotConfig configJsonFile = BotConfig.GetConfig();
+                BlackList = new BlackListEngine();
 
-            //3. Apply this config to our DiscordClient
-            Client = new DiscordClient(discordConfig);
+                //2. Setting up the Bot Configuration
+                var discordConfig = new DiscordConfiguration()
+                {
+                    Intents = DiscordIntents.All,
+                    Token = configJsonFile.Token,
+                    TokenType = TokenType.Bot,
+                    AutoReconnect = true
+                };
 
-            //4. Set the default timeout for Commands that use interactivity
-            Client.UseInteractivity(new InteractivityConfiguration()
+                //3. Apply this config to our DiscordClient
+                Client = new DiscordClient(discordConfig);
+
+                //4. Set the default timeout for Commands that use interactivity
+                Client.UseInteractivity(new InteractivityConfiguration()
+                {
+                    Timeout = TimeSpan.FromMinutes(2)
+                });
+                _InitalizeEngines();
+
+                //5. Set up the Task Handler Ready event
+                Client.Ready += OnClientReady;
+                Client.MessageCreated += MessageSentHandler;
+                Client.GuildMemberAdded += UserJoinedHandler;
+                Client.GuildAvailable += GuildAvailableHandler;
+                Client.MessageReactionAdded += MessageReactionAddedHandler;
+                Client.MessageReactionRemoved += MessageReactionRemoveHandler;
+                Client.MessageDeleted += MessageDeleteHandler;
+                Client.MessageUpdated += MessageUpdatedHandler;
+
+                //6. Set up the Commands Configuration
+                CommandsNextConfiguration commandsConfig = new CommandsNextConfiguration()
+                {
+                    StringPrefixes = new string[] { configJsonFile.Prefix },
+                    EnableMentionPrefix = true,
+                    EnableDms = true,
+                    EnableDefaultHelp = false,
+                };
+
+                Commands = Client.UseCommandsNext(commandsConfig);
+                SlashCommandsExtension slashCommands = Client.UseSlashCommands();
+
+                //7. Register your commands
+                Commands.RegisterCommands<BasicCommands>();
+                Commands.RegisterCommands<BasicGameCommands>();
+                Commands.RegisterCommands<AdminCommands>();
+                Commands.RegisterCommands<MiscAdminCommands>();
+                Commands.RegisterCommands<OwnerCommands>();
+                Commands.RegisterCommands<WatchCommands>();
+
+                slashCommands.RegisterCommands<BasicSlashCommands>();
+                slashCommands.RegisterCommands<ReminderCommands>(427296058310393856);
+                slashCommands.RegisterCommands<WatchSlashCommands>(427296058310393856);
+                slashCommands.RegisterCommands<ProfileCommands>();
+
+                //7.1 Command Error Handler
+                Commands.CommandErrored += CommandErrorHandler;
+                slashCommands.SlashCommandErrored += SlashCommandErrorHandler;
+
+                //8. Connect to get the Bot online
+                await Client.ConnectAsync();
+                Log.WriteToFile(Log.LogLevel.DiscordBot, $"Bot is online at {DateTime.Now}");
+                await Task.Delay(-1);
+            }
+            catch(Exception ex)
             {
-                Timeout = TimeSpan.FromMinutes(2)
-            });
-            _InitalizeEngines();
-
-            //5. Set up the Task Handler Ready event
-            Client.Ready += OnClientReady;
-            Client.MessageCreated += MessageSentHandler;
-            Client.GuildMemberAdded += UserJoinedHandler;
-            Client.GuildAvailable += GuildAvailableHandler;
-            Client.MessageReactionAdded += MessageReactionAddedHandler;
-            Client.MessageReactionRemoved += MessageReactionRemoveHandler;
-            Client.MessageDeleted += MessageDeleteHandler;
-            Client.MessageUpdated += MessageUpdatedHandler;
-
-        //6. Set up the Commands Configuration
-            CommandsNextConfiguration commandsConfig = new CommandsNextConfiguration()
-            {
-                StringPrefixes = new string[] { configJsonFile.Prefix },
-                EnableMentionPrefix = true,
-                EnableDms = true,
-                EnableDefaultHelp = false,
-            };
-
-            Commands = Client.UseCommandsNext(commandsConfig);
-            SlashCommandsExtension slashCommands = Client.UseSlashCommands();
-
-            //7. Register your commands
-            Commands.RegisterCommands<BasicCommands>();
-            Commands.RegisterCommands<BasicGameCommands>();
-            Commands.RegisterCommands<AdminCommands>();
-            Commands.RegisterCommands<MiscAdminCommands>();
-            Commands.RegisterCommands<OwnerCommands>();
-            Commands.RegisterCommands<WatchCommands>();
-
-            slashCommands.RegisterCommands<BasicSlashCommands>();
-            slashCommands.RegisterCommands<ReminderCommands>(427296058310393856);
-            slashCommands.RegisterCommands<WatchSlashCommands>(427296058310393856);
-            slashCommands.RegisterCommands<ProfileCommands>();
-
-            //7.1 Command Error Handler
-            Commands.CommandErrored += CommandErrorHandler;
-            slashCommands.SlashCommandErrored += SlashCommandErrorHandler;
-
-            //8. Connect to get the Bot online
-            await Client.ConnectAsync();
-
-            await Task.Delay(-1);
+                Log.WriteToFile(Log.LogLevel.DiscordBot, ex);
+            }
         }
 
         private static Task OnClientReady(DiscordClient sender, ReadyEventArgs e)
