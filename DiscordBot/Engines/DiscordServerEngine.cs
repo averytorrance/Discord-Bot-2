@@ -10,6 +10,7 @@ using DSharpPlus;
 using DSharpPlus.SlashCommands;
 using DSharpPlus.CommandsNext;
 using System.IO;
+using DiscordBot.Classes;
 
 namespace DiscordBot.Engines
 {
@@ -236,7 +237,7 @@ namespace DiscordBot.Engines
         public async void SendBotMessage(DiscordMessageBuilder message)
         {
             DiscordChannel channel = await GetBotChannel();
-            await channel.SendMessageAsync(message);
+            await SentChannelMessage(channel, message);
         }
 
         /// <summary>
@@ -248,7 +249,7 @@ namespace DiscordBot.Engines
             if(BotChannelID == 0) { return false; }
 
             DiscordChannel channel = await GetBotChannel();
-            await channel.SendMessageAsync(message);
+            await SentChannelMessage(channel, message);
             return true;
         }
 
@@ -261,7 +262,7 @@ namespace DiscordBot.Engines
             if (YTPlanToWatchChannelID == 0) { return false; }
 
             DiscordChannel channel = await GetYTPlanToWatchChannel();
-            await channel.SendMessageAsync(message);
+            await SentChannelMessage(channel, message);
             return true;
         }
 
@@ -283,6 +284,11 @@ namespace DiscordBot.Engines
             return await Program.Client.GetChannelAsync(YTPlanToWatchChannelID);
         }
 
+        /// <summary>
+        /// Sends an interaction message
+        /// </summary>
+        /// <param name="ctx"></param>
+        /// <param name="response"></param>
         public async void SendInteractionResponse(InteractionContext ctx, string response)
         {
             DiscordInteractionResponseBuilder message = new DiscordInteractionResponseBuilder();
@@ -305,26 +311,86 @@ namespace DiscordBot.Engines
             await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, message);
         }
 
-        public async void SendResponse(CommandContext ctx, string response)
+        /// <summary>
+        /// Sends a response to a message
+        /// </summary>
+        /// <param name="ctx"></param>
+        /// <param name="response"></param>
+        public async void SendResponse(CommandContext ctx, string response, bool forceFile = false)
         {
-            DiscordMessageBuilder message = new DiscordMessageBuilder();
-
-            if (response.Length > 2000)
+            try
             {
-                string filePath = $"{ServerConfig.ServerDirectory(ctx.Guild.Id)}{DateTime.Now.Ticks}.txt";
-                File.WriteAllText(filePath, response);
-                FileStream file = new FileStream(filePath, FileMode.Open);
-                message.AddFile(file);
-                await ctx.RespondAsync(response);
-                file.Close();
-                File.Delete(filePath);
-                return;
+                DiscordMessageBuilder message = new DiscordMessageBuilder();
+
+                if (forceFile || response.Length > 2000)
+                {
+                    string filePath = $"{ServerConfig.ServerDirectory(ctx.Guild.Id)}{DateTime.Now.Ticks}.txt";
+                    File.WriteAllText(filePath, response);
+                    FileStream file = new FileStream(filePath, FileMode.Open);
+                    message.AddFile(file);
+                    await ctx.RespondAsync(message);
+                    file.Close();
+                    File.Delete(filePath);
+                    return;
+                }
+
+                message.WithContent(response);
+                await ctx.RespondAsync(message);
+            }
+            catch(Exception ex)
+            {
+                Log.WriteToFile(Log.LogLevel.DiscordBot, ex);
+                throw ex;
             }
 
-            message.WithContent(response);
-            await ctx.RespondAsync(message);
+        }
 
+        /// <summary>
+        /// sends a chennel message
+        /// </summary>
+        /// <param name="channel"></param>
+        /// <param name="message"></param>
+        /// <returns></returns>
+        private async Task<bool> SentChannelMessage(DiscordChannel channel, string message, bool forceFile = false)
+        {
+            var messageBuilder = new DiscordMessageBuilder();
 
+            if (forceFile || message.Length > 2000)
+            {
+                string filePath = $"{ServerConfig.ServerDirectory(channel.Guild.Id)}{DateTime.Now.Ticks}.txt";
+                File.WriteAllText(filePath, message);
+                FileStream file = new FileStream(filePath, FileMode.Open);
+                messageBuilder.AddFile(file);
+                messageBuilder.Content = "";
+                await channel.SendMessageAsync(messageBuilder);
+                file.Close();
+                File.Delete(filePath);
+                return true;
+            }
+
+            messageBuilder.Content = message;
+
+            return await SentChannelMessage(channel, messageBuilder);
+        }
+
+        /// <summary>
+        /// sends a chennel message
+        /// </summary>
+        /// <param name="channel"></param>
+        /// <param name="message"></param>
+        /// <returns></returns>
+        private async Task<bool> SentChannelMessage(DiscordChannel channel, DiscordMessageBuilder message, bool forceFile = false)
+        {
+            try
+            {
+                await channel.SendMessageAsync(message);
+                return true;
+            }
+            catch(Exception ex)
+            {
+                Log.WriteToFile(Log.LogLevel.DiscordBot, ex);
+                throw ex;
+            }
         }
 
     }

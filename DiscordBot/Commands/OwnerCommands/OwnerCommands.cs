@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace DiscordBot.Commands
 {
-    class OwnerCommands : BaseCommandModule
+    public class OwnerCommands : BaseCommandModule
     {
         /// <summary>
         /// Selects a random item from a list of input items
@@ -43,7 +43,7 @@ namespace DiscordBot.Commands
         /// </summary>
         /// <param name="ctx">command context</param>
         /// <returns></returns>
-        [Command]
+        [Command("viewtaskqueue")]
         [RequireOwner]
         public async Task ViewTaskQueue(CommandContext ctx)
         {
@@ -55,7 +55,20 @@ namespace DiscordBot.Commands
                 result = "Queue is empty.";
             }
 
-            engine.SendResponse(ctx, result);
+            engine.SendResponse(ctx, result, true);
+        }
+
+        /// <summary>
+        /// Executes a task on the task list
+        /// </summary>
+        /// <param name="ctx">command context</param>
+        /// <returns></returns>
+        [Command("executetask")]
+        [RequireOwner]
+        public async Task ExecuteTask(CommandContext ctx, params string[] names)
+        {
+            ulong id = (ulong)(Int64.Parse(string.Join(" ", names)));
+            TaskEngine.CurrentEngine.ExecuteTask(id);
         }
     }
 }

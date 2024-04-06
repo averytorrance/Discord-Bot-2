@@ -85,15 +85,7 @@ namespace DiscordBot.Engines
                 {
                     if (IsRunning())
                     {
-                        try
-                        {
-                            _tasks.Remove(task);
-                            task.Execute();
-                        }
-                        catch (Exception ex)
-                        {
-                            Console.WriteLine($"Error executing task:\n {ex.Message} : {ex.StackTrace}");
-                        }
+                        ExecuteTask(task);
                     }
                     else
                     {
@@ -112,7 +104,39 @@ namespace DiscordBot.Engines
                     _timer.Start();
                 }
             }
+        }
 
+        /// <summary>
+        /// Executes an ITask object
+        /// </summary>
+        /// <param name="task"></param>
+        private void ExecuteTask(ITask task)
+        {
+            try
+            {
+                _tasks.Remove(task);
+                task.Execute();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error executing task:\n {ex.Message} : {ex.StackTrace}");
+            }
+        }
+
+        /// <summary>
+        /// Executes a task given its ID
+        /// </summary>
+        /// <param name="id"></param>
+        /// <exception cref="InvalidOperationException"></exception>
+        public void ExecuteTask(ulong id)
+        {
+            if (!HasTask(id))
+            {
+                throw new InvalidOperationException($"Task with id {id} does not exist");
+            }
+
+            ITask task = GetTask(id);
+            ExecuteTask(task);
         }
 
         /// <summary>
@@ -168,6 +192,16 @@ namespace DiscordBot.Engines
         public bool HasTask(ulong id)
         {
             return _tasks.Where(x => x.TaskID == id).Count() > 0;
+        }
+
+        /// <summary>
+        /// Gets a task given a specific ID
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        private ITask GetTask(ulong id)
+        {
+            return _tasks.Where(x => x.TaskID == id).FirstOrDefault();
         }
 
         /// <summary>
