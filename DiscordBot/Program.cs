@@ -119,8 +119,11 @@ namespace DiscordBot
         private static void _InitalizeEngines()
         {
             new TaskEngine();
-            //TaskEngine.CurrentEngine.Start();
-
+            
+            #if (!DEBUG)
+            TaskEngine.CurrentEngine.Start();
+            #endif
+            
             new ReminderEngine();
             new WatchRatingsEngine();
             new WatchPlanEngine();

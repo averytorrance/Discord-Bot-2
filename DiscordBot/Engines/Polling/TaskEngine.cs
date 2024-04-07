@@ -67,7 +67,7 @@ namespace DiscordBot.Engines
         /// <returns></returns>
         public bool IsRunning()
         {
-            return _state == PollerState.Running;
+            return _state == PollerState.Running && _timer != null;
         }
 
         /// <summary>

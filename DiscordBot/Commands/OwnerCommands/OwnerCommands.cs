@@ -70,5 +70,17 @@ namespace DiscordBot.Commands
             ulong id = (ulong)(Int64.Parse(string.Join(" ", names)));
             TaskEngine.CurrentEngine.ExecuteTask(id);
         }
+
+        /// <summary>
+        /// Executes a task on the task list
+        /// </summary>
+        /// <param name="ctx">command context</param>
+        /// <returns></returns>
+        [Command("ispollerrunning")]
+        [RequireOwner]
+        public async Task IsPollerRunning(CommandContext ctx)
+        {
+            await ctx.RespondAsync(TaskEngine.CurrentEngine.IsRunning().ToString());
+        }
     }
 }
