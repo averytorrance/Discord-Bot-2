@@ -273,9 +273,15 @@ namespace DiscordBot.Classes
                 }
 			}
 
+			string content = $"{Strings.Mention(OwnerId)}: {Message}{subscriberMentions}";
+            if (IsStale())
+            {
+				content = $"Stale Reminder. This should've been sent at {SendTime} UTC.\n\n{content}";
+            }
+
 			DiscordMessageBuilder builder = new DiscordMessageBuilder()
 				.WithAllowedMentions((IEnumerable<IMention>)users)
-				.WithContent($"{ Strings.Mention(OwnerId)}: {Message}{subscriberMentions}");
+				.WithContent(content);
 
 			return builder;
         }
