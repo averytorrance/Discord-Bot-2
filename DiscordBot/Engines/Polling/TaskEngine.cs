@@ -52,7 +52,7 @@ namespace DiscordBot.Engines
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error waiting for next minute:\n {ex.Message} : {ex.StackTrace}");
+                Log.WriteToFile(Log.LogLevel.DiscordBot, ex, "Error encountored while waiting for next minute to start poller.");
             }
             finally
             {
@@ -95,7 +95,7 @@ namespace DiscordBot.Engines
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.ToString());
+                Log.WriteToFile(Log.LogLevel.DiscordBot, ex);
             }
             finally
             {
@@ -119,7 +119,7 @@ namespace DiscordBot.Engines
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error executing task:\n {ex.Message} : {ex.StackTrace}");
+                Log.WriteToFile(Log.LogLevel.DiscordBot, ex, $"Error executing task: {task}");
             }
         }
 

@@ -21,6 +21,9 @@ namespace DiscordBot.Classes
                 Directory.CreateDirectory(path);
             }
 
+            message = $"{DateTime.Now}: {message}\n___________________________________________________________________________" +
+                $"_________________________________________________________________________________________________________\n";
+
             string logFile = $"{path}\\{level.GetName()}_{DateTime.Now.Date.ToString("yyyy-MM-dd")}.txt";
             if (!File.Exists(logFile))
             {
@@ -43,15 +46,30 @@ namespace DiscordBot.Classes
         /// </summary>
         /// <param name="level"></param>
         /// <param name="message"></param>
-        public static void WriteToFile(LogLevel level, Exception error)
-        { 
-            WriteToFile(level, $"______________\n" +
-                $"Error: {error.Message} \n" +
-                $"StackTrace: {error.StackTrace} \n_________");
-            if(error.InnerException != null)
+        public static void WriteToFile(LogLevel level, Exception error, string additionalInformation = "")
+        {
+            string errorLog = ExceptionString(error);
+            if (!string.IsNullOrWhiteSpace(additionalInformation))
             {
-                WriteToFile(level, error.InnerException);
+                errorLog = $"{additionalInformation}\n {errorLog}";
             }
+            WriteToFile(level, errorLog);
+        }
+
+        /// <summary>
+        /// constructs a string for an exception
+        /// </summary>
+        /// <param name="error"></param>
+        /// <returns></returns>
+        private static string ExceptionString(Exception error)
+        {
+            string ret = $"Error: {error.Message}" +
+                $"StackTrace: {error.StackTrace}";
+            if (error.InnerException != null)
+            {
+                return $"{ret}\n\n{ExceptionString(error.InnerException)}";
+            }
+            return ret;
         }
 
         /// <summary>

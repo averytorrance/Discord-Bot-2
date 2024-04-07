@@ -4,6 +4,7 @@ using System.Linq;
 using DiscordBot.Config;
 using DSharpPlus.Entities;
 using Newtonsoft.Json;
+using DiscordBot.Classes;
 
 namespace DiscordBot.Engines
 {
@@ -122,6 +123,7 @@ namespace DiscordBot.Engines
 
                 if(error != YoutubeError.None)
                 {
+                    Log.WriteToFile(Log.LogLevel.DiscordBot, "");
                     return;
                 }
 

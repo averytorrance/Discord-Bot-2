@@ -307,7 +307,7 @@ namespace DiscordBot
             }
 
             await error.Context.Channel.SendMessageAsync(DiscordMessageAssets.GenerateErrorMessage(error.Exception));
-
+            Log.WriteToFile(Log.LogLevel.DiscordBot, error.Exception);
             Console.WriteLine(error.Exception);
 
         }

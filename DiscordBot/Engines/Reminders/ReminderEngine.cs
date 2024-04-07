@@ -413,9 +413,10 @@ namespace DiscordBot.Engines
         {
             try
             {
+                DiscordServerEngine server = await DiscordServerEngine.GetDiscordServerEngine(ServerID);
                 DiscordChannel channel = await ReminderEngine.GetReminderChannel(ServerID);
-
-                await channel.SendMessageAsync(reminder.ReminderMessage());
+                await server.SendChannelMessage(channel, reminder.ReminderMessage());
+                
                 if (!reminder.IsRecurring())
                 {
                     _reminders.Remove(reminder.ID);
@@ -431,6 +432,7 @@ namespace DiscordBot.Engines
             }
             catch (Exception ex)
             {
+                Log.WriteToFile(Log.LogLevel.DiscordBot, ex, $"Error encountered while sending reminder {reminder}.");
                 return false;
             }
         }

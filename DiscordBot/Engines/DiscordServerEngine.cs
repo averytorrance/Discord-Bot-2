@@ -237,7 +237,7 @@ namespace DiscordBot.Engines
         public async void SendBotMessage(DiscordMessageBuilder message)
         {
             DiscordChannel channel = await GetBotChannel();
-            await SentChannelMessage(channel, message);
+            await SendChannelMessage(channel, message);
         }
 
         /// <summary>
@@ -370,7 +370,7 @@ namespace DiscordBot.Engines
 
             messageBuilder.Content = message;
 
-            return await SentChannelMessage(channel, messageBuilder);
+            return await SendChannelMessage(channel, messageBuilder);
         }
 
         /// <summary>
@@ -379,7 +379,7 @@ namespace DiscordBot.Engines
         /// <param name="channel"></param>
         /// <param name="message"></param>
         /// <returns></returns>
-        private async Task<bool> SentChannelMessage(DiscordChannel channel, DiscordMessageBuilder message, bool forceFile = false)
+        public async Task<bool> SendChannelMessage(DiscordChannel channel, DiscordMessageBuilder message)
         {
             try
             {
