@@ -44,9 +44,11 @@ namespace DiscordBot.Commands
             DUser user = discordUserEngine.GetUser(ctx.Message.Author);
 
             DateTime botTime = DateTime.Now;
+            DateTime utc = botTime.ToUniversalTime();
             DateTime localTime = user.LocalTime(botTime);
 
-            string response = $"Bot Time: {botTime}\n" +
+            string response = $"UTC Time: {utc}\n" +
+            $"Bot Time: {botTime}\n" +
                 $"Your Time: {localTime}\n\n" +
                 $"You can change your timezone using /setmytimezone";
 
