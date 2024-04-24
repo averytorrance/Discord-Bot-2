@@ -55,6 +55,7 @@ namespace DiscordBot.Engines
 
         public List<string> GetSubscribedChannelList(ulong serverID)
         {
+            Load(serverID);
             YoutubeEngineState state;
             if (!serverStates.TryGetValue(serverID, out state))
             {
@@ -70,6 +71,7 @@ namespace DiscordBot.Engines
         /// <param name="channel"></param>
         public void SubscribeToChannel(ulong serverID, string channel)
         {
+            Load(serverID);
             YoutubeEngineState state;
             if (!serverStates.TryGetValue(serverID, out state))
             {
@@ -92,6 +94,7 @@ namespace DiscordBot.Engines
         /// <param name="channel"></param>
         public void UnSubscribeFromChannel(ulong serverID, string channel)
         {
+            Load(serverID);
             YoutubeEngineState state;
             if (!serverStates.TryGetValue(serverID, out state))
             {
