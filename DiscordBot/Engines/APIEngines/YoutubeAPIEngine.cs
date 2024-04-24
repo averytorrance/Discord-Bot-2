@@ -53,6 +53,16 @@ namespace DiscordBot.Engines
             }
         }
 
+        public List<string> GetSubscribedChannelList(ulong serverID)
+        {
+            YoutubeEngineState state;
+            if (!serverStates.TryGetValue(serverID, out state))
+            {
+                state = new YoutubeEngineState(serverID);
+            }
+            return state.SubscribedChannels;
+        }
+
         /// <summary>
         /// Subscribes a server to a YT Channel
         /// </summary>
@@ -65,6 +75,11 @@ namespace DiscordBot.Engines
             {
                 state = new YoutubeEngineState(serverID);
             }
+            else
+            {
+                serverStates.Remove(serverID);
+            }
+
             state.SubscribedChannels.Add(channel);          
             serverStates.Add(serverID, state);
             state.SaveState();
@@ -82,6 +97,12 @@ namespace DiscordBot.Engines
             {
                 return;
             }
+            else
+            {
+                serverStates.Remove(serverID);
+            }
+
+            state.RemoveChannel(channel);
             state.SubscribedChannels.Remove(channel);
             serverStates.Add(serverID, state);
             state.SaveState();
@@ -261,6 +282,34 @@ namespace DiscordBot.Engines
             }
             SaveState();
         }
+
+        /// <summary>
+        /// Adds a youtube channel to the subscribe list
+        /// </summary>
+        /// <param name="channelID"></param>
+        public void AddChannel(string channelID)
+        {
+            if (!SubscribedChannels.Contains(channelID))
+            {
+                SubscribedChannels.Add(channelID);
+                SaveState();
+            }
+        }
+
+        /// <summary>
+        /// Removes a channel from the subscribe list
+        /// </summary>
+        /// <param name="channelID"></param>
+        public void RemoveChannel(string channelID)
+        {
+            if (SubscribedChannels.Contains(channelID))
+            {
+                SubscribedChannels = SubscribedChannels.Where(x=> x != channelID).ToList();
+                SaveState();
+            }
+        }
+
+
     }
 
     #region Response Classes

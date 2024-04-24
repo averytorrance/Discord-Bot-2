@@ -5,7 +5,9 @@ using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace DiscordBot.Commands
@@ -82,5 +84,66 @@ namespace DiscordBot.Commands
         {
             await ctx.RespondAsync(TaskEngine.CurrentEngine.IsRunning().ToString());
         }
+
+        /// <summary>
+        /// Executes a task on the task list
+        /// </summary>
+        /// <param name="ctx">command context</param>
+        /// <returns></returns>
+        [Command("getytsubscriptionlist")]
+        public async Task GetYTSubscriptionList(CommandContext ctx)
+        {
+            YoutubeAPIEngine engine = new YoutubeAPIEngine();
+            List<string> channels = engine.GetSubscribedChannelList(ctx.Guild.Id);
+            channels = channels.Select(x => $"https://www.youtube.com/channel/{x}").ToList();
+            DiscordServerEngine server = new DiscordServerEngine(ctx.Guild);
+
+            string response = "No channels found.";
+            if (channels.Count > 0)
+            {
+                response = string.Join("\n", channels);
+            }
+            server.SendResponse(ctx, response);
+        }
+
+        /// <summary>
+        /// Executes a task on the task list
+        /// </summary>
+        /// <param name="ctx">command context</param>
+        /// <returns></returns>
+        [RequireOwner]
+        [Command("ytsubscribe")]
+        public async Task YTSubscribe(CommandContext ctx, params string[] names)
+        {
+            YoutubeAPIEngine engine = new YoutubeAPIEngine();
+            foreach(string channel in names)
+            {
+                engine.SubscribeToChannel(ctx.Guild.Id, channel);
+            }
+            
+            DiscordServerEngine server = new DiscordServerEngine(ctx.Guild);
+            server.SendResponse(ctx, "Success");
+        }
+
+        /// <summary>
+        /// Executes a task on the task list
+        /// </summary>
+        /// <param name="ctx">command context</param>
+        /// <returns></returns>
+        [RequireOwner]
+        [Command("ytunsubscribe")]
+        public async Task YTUnsubscribe(CommandContext ctx, params string[] names)
+        {
+            YoutubeAPIEngine engine = new YoutubeAPIEngine();
+            foreach (string channel in names)
+            {
+                engine.UnSubscribeFromChannel(ctx.Guild.Id, channel);
+            }
+
+            DiscordServerEngine server = new DiscordServerEngine(ctx.Guild);
+            server.SendResponse(ctx, "Success");
+        }
+
+
     }
 }
